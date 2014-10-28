@@ -27,7 +27,7 @@ TBD.
 
 ## Testing
 
-TBD.
+The [JSON-LD Test Suite](http://json-ld.org/test-suite/) is used to verify [JSON-LD Processor conformance](http://json-ld.org/test-suite/reports/). clj-json-ld uses the JSON-LD Test Suite, as well as some additional tests.
 
 ## Development and Contributing
 
