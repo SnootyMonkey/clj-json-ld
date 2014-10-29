@@ -23,7 +23,24 @@ TBD.
 
 ## Usage
 
-TBD.
+At the REPL:
+
+```clojure
+(require '[clj-json-ld.core :as json-ld])
+```
+
+In your namespace:
+
+```clojure
+(ns your-app.core
+  (:require [clj-json-ld.core :as :json-ld]))  
+```
+
+Note: The `flatten` function specified in [JSON-LD 1.0 Processing Algorithms and API](http://www.w3.org/TR/json-ld-api/) conflicts with Clojure core's [flatten](https://clojuredocs.org/clojure.core/flatten) function, so unless you use `:as` you'll see a warning about the replacement:
+
+```clojure
+WARNING: flatten already refers to: #'clojure.core/flatten in namespace: user, being replaced by: #'clj-json-ld.core/flatten
+```
 
 ## Testing
 

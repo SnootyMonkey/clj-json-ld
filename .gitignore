@@ -6,4 +6,5 @@ pom.xml.asc
 *.jar
 *.class
 /.nrepl-port
+/.lein-repl-history
 .DS_Store
