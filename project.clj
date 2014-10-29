@@ -1,5 +1,5 @@
 (defproject clj-json-ld "0.1.0-SNAPSHOT"
-  :description "JSON-LD for Clojure/ClojureScript"
+  :description "JSON-LD for Clojure"
   :url "https://github.com/SnootyMonkey/clj-json-ld"
   :license {
     :name "Mozilla Public License v2.0"

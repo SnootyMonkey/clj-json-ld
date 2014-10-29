@@ -1,7 +1,7 @@
 -= clj-json-ld =- [![Build Status](https://travis-ci.org/SnootyMonkey/clj-json-ld.png?branch=master)](https://travis-ci.org/SnootyMonkey/clj-json-ld)
 =================
 
-The Clojure/ClojureScript library for [JSON-LD](http://json-ld.org/) (JavaScript Object Notation for Linking Data).
+The Clojure library for [JSON-LD](http://json-ld.org/) (JavaScript Object Notation for Linking Data).
 
 "Data is messy and disconnected. JSON-LD organizes and connects it, creating a better Web."
 
@@ -23,6 +23,8 @@ TBD.
 
 ## Usage
 
+Note: This library is currently a WIP stub and is not yet usable.
+
 At the REPL:
 
 ```clojure
@@ -38,9 +40,11 @@ In your namespace:
 
 Note: The `flatten` function specified in [JSON-LD 1.0 Processing Algorithms and API](http://www.w3.org/TR/json-ld-api/) conflicts with Clojure core's [flatten](https://clojuredocs.org/clojure.core/flatten) function, so unless you use `:as` you'll see a warning about the replacement:
 
-```clojure
+```
 WARNING: flatten already refers to: #'clojure.core/flatten in namespace: user, being replaced by: #'clj-json-ld.core/flatten
 ```
+
+More detailed usage instructions are in the API documentation.
 
 ## Testing
 
