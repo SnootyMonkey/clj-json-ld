@@ -2,7 +2,7 @@
   (:refer-clojure :exclude [flatten])
   (:require [midje.sweet :refer :all]
             [cheshire.core :refer (parse-string)]
-            [clj-json-ld.lib.spec-test-suite :refer :all]
+            [clj-json-ld.util.spec-test-suite :refer :all]
             [clj-json-ld.core :as json-ld]))
 
 (def manifest "flatten-manifest.jsonld")
@@ -14,7 +14,7 @@
 
   (doseq [test-case (take 1 (tests-from-manifest manifest))]
 
-    (println (:name test-case))
+    (print-test "Flatten" test-case)
 
     ;; Possible variation:
     ;; input - JSON, map, remote file

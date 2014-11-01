@@ -1,8 +1,10 @@
-(ns clj-json-ld.lib.spec-test-suite
-  (:require [clojure.walk :refer (keywordize-keys)]
+(ns clj-json-ld.util.spec-test-suite
+  (:require [clojure.java.io :as io]
+            [clojure.walk :refer (keywordize-keys)]
             [cheshire.core :refer (parse-string, parse-stream)]))
 
-(def spec-location "../json-ld.org/")
+(def possible-spec-dirs ["../json-ld.org/" "../spec/" "./spec/"])
+(def spec-location (first (filter #(.isDirectory (io/file %)) possible-spec-dirs)))
 (def tests-location (str spec-location "test-suite/tests/"))
 
 (defn- load-manifest [manifest-file]
@@ -17,3 +19,8 @@
     (map #(assoc % :input (slurp (str tests-location (:input %)))))
     (map #(assoc % :expect (slurp (str tests-location (:expect %)))))
     (map #(assoc % :context (if (:context %) (slurp (str tests-location (:context %))) nil)))))
+
+(defn print-test [test-type test-case]
+  (println (str "\n" test-type) "Test:" (:name test-case))
+  (println "Input:\n" (:input test-case))
+  (println "Expected:\n" (:expect test-case)))
