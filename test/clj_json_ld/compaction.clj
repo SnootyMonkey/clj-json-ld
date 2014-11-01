@@ -1,14 +1,16 @@
 (ns clj-json-ld.compaction
   (:require [midje.sweet :refer :all]
-            [clj-json-ld.core :refer (compact)]))
+            [cheshire.core :refer (parse-string)]
+            [clj-json-ld.lib.spec-test-suite :refer :all]
+            [clj-json-ld.core :as json-ld]))
 
-(def manifest "compaction-manifest.jsonld")
+(def manifest "compact-manifest.jsonld")
 
-(future-facts "Compact Evaluation Tests"
+(facts "Compact Evaluation Tests"
 
-  (doseq [test-case (tests-from-manifest manifest)]
+  (doseq [test-case (take 1 (tests-from-manifest manifest))]
 
-    (println (:name test))
+    (println (:name test-case))
 
     ;; Possible variation:
     ;; input - JSON, map, remote file
@@ -27,5 +29,9 @@
     ;; 7,"map","remote","map"
     ;; 8,"remote","map","map"
     ;; 9,"remote","remote","JSON"
-    )
+
+    ;; 1,"JSON","JSON","JSON"
+    (parse-string (json-ld/compact (:input test-case) (:context test-case))) =>
+      (parse-string (:expect test-case))
+  )
 )

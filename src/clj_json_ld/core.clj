@@ -21,14 +21,14 @@
   
   **options** *(optional)* - 
 
-  Returns a Clojure [future](https://clojuredocs.org/clojure.core/future) containing the
-  compacted JSON-LD that can be read with [deref](https://clojuredocs.org/clojure.core/deref)
-  or [@](https://clojuredocs.org/clojure.core/deref).
+  Returns a compacted a JSON-LD document as a Unicode text string, or a
+  [Map](http://clojure.org/data_structures#Data%20Structures-Maps%20%28IPersistentMap%29)
+  representing the compacted JSON-LD document.
   "
   ([input] (compact input nil))
   ([input context] (compact input context {}))
   ([input context options]
-    (future (compact-it input context options))))
+    (compact-it input context options)))
 
 (defn expand
   "
@@ -41,13 +41,13 @@
   
   **options** *(optional)* - 
 
-  Returns a Clojure [future](https://clojuredocs.org/clojure.core/future) containing the
-  expanded JSON-LD that can be read with [deref](https://clojuredocs.org/clojure.core/deref)
-  or [@](https://clojuredocs.org/clojure.core/deref).
+  Returns an expanded JSON-LD document as a Unicode text string, or a
+  [Map](http://clojure.org/data_structures#Data%20Structures-Maps%20%28IPersistentMap%29)
+  representing the expanded JSON-LD document.
   "
   ([input] (expand input {}))
   ([input options]
-    (future (expand-it input options))))
+    (expand-it input options)))
 
 (defn flatten
   "
@@ -63,11 +63,11 @@
   
   **options** *(optional)* - 
 
-  Returns a Clojure [future](https://clojuredocs.org/clojure.core/future) containing the
-  compacted JSON-LD that can be read with [deref](https://clojuredocs.org/clojure.core/deref)
-  or [@](https://clojuredocs.org/clojure.core/deref).
+  Returns a flattened a JSON-LD document as a Unicode text string, or a
+  [Map](http://clojure.org/data_structures#Data%20Structures-Maps%20%28IPersistentMap%29)
+  representing the flattened JSON-LD document.
   "
   ([input] (flatten input nil))
   ([input context] (flatten input context {}))
   ([input context options]
-    (future (flatten-it input context options))))
+    (flatten-it input context options)))

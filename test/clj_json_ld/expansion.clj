@@ -6,9 +6,9 @@
 
 (def manifest "expand-manifest.jsonld")
 
-(future-facts "Expansion Evaluation Tests"
+(facts "Expansion Evaluation Tests"
 
-  (doseq [test-case (tests-from-manifest manifest)]
+  (doseq [test-case (take 1 (tests-from-manifest manifest))]
 
     (println "\n" (:name test-case))
 
@@ -28,4 +28,5 @@
     ;; 1,"JSON","JSON"
     (parse-string (json-ld/expand (:input test-case))) =>
       (parse-string (:expect test-case))
-  ))
+  )
+)
