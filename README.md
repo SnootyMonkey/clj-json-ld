@@ -5,17 +5,35 @@ The Clojure library for [JSON-LD](http://json-ld.org/) (JavaScript Object Notati
 
 "Data is messy and disconnected. JSON-LD organizes and connects it, creating a better Web."
 
-## Benefits
+## Introduction
 
-TBD.
+clj-json-ld implements the [JSON LD 1.0 Processing Algorithms and API](http://www.w3.org/TR/json-ld-api/). Whoop-de-doo! Why should you care?
 
-### For Producers of JSON Data
 
-TBD.
+### Benefits of Linked Data
 
-### For Consumers of JSON-LD Data
+> [Linked Data](http://www.w3.org/DesignIssues/LinkedData.html) is a way to create a network of standards-based machine interpretable data across different documents and Web sites. It allows an application to start at one piece of Linked Data, and follow embedded links to other pieces of Linked Data that are hosted on different sites across the Web.
 
-TBD.
+
+### Benefits of JSON-LD
+
+> JSON-LD is a lightweight syntax to serialize Linked Data in [JSON](http://www.ietf.org/rfc/rfc4627.txt). Its design allows existing JSON to be interpreted as Linked Data with minimal changes. JSON-LD is primarily intended to be a way to use Linked Data in Web-based programming environments, to build interoperable Web services, and to store Linked Data in JSON-based storage engines. Since JSON-LD is 100% compatible with JSON, the large number of JSON parsers and libraries available today can be reused. 
+
+JSON-LD provides:
+
+* a universal identifer mechanism for JSON objects,
+* a way to disambiguate keys shared among different JSON documents,
+* a mechanism in which a value in a JSON object may refer to a JSON object on a different site on the Web,
+* the ability to annotate strings in JSON objects with their language,
+* a way to associate datatypes with values such as dates and times,
+* and a facility to express one or more directed graphs, such as a social network, in a single document.
+
+> The JSON-LD syntax is designed to not disturb already deployed systems running on JSON, but provide a smooth upgrade path from JSON to JSON-LD. Since the shape of such data varies wildly, JSON-LD features mechanisms to reshape documents into a deterministic structure which simplifies their processing.
+
+>JSON-LD is designed to be usable directly as JSON, with no knowledge of [RDF](http://www.w3.org/TR/2014/PR-rdf11-concepts-20140109/). It is also designed to be usable as RDF, if desired, for use with other Linked Data technologies like SPARQL.
+
+>Developers who require any of the facilities listed above or need to serialize an RDF Graph or RDF Dataset in a JSON-based syntax will find JSON-LD of interest.
+
 
 ## Installation
 
@@ -23,7 +41,7 @@ TBD.
 
 ## Usage
 
-Note: This library is currently a WIP stub and is not yet usable.
+:bomb: This library is currently a WIP stub and is not yet usable.
 
 At the REPL:
 
@@ -38,7 +56,7 @@ In your namespace:
   (:require [clj-json-ld.core :as :json-ld]))  
 ```
 
-Note: The `flatten` function specified in [JSON-LD 1.0 Processing Algorithms and API](http://www.w3.org/TR/json-ld-api/) conflicts with Clojure core's [flatten](https://clojuredocs.org/clojure.core/flatten) function, so unless you use `:as` you'll see a warning about the replacement:
+:warning: The `flatten` function specified in [JSON-LD 1.0 Processing Algorithms and API](http://www.w3.org/TR/json-ld-api/) conflicts with Clojure core's [flatten](https://clojuredocs.org/clojure.core/flatten) function, so unless you use `:as` you'll see a warning about the replacement:
 
 ```
 WARNING: flatten already refers to: #'clojure.core/flatten in namespace: user, being replaced by: #'clj-json-ld.core/flatten
