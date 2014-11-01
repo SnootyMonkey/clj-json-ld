@@ -12,7 +12,7 @@
 
     (print-test "Expansion" test-case)
 
-    ;; Possible variation:
+    ;; Possible variations:
     ;; input - JSON, map, remote file
     ;; output - JSON, map
     
@@ -28,5 +28,18 @@
     ;; 1,"JSON","JSON"
     (parse-string (json-ld/expand (:input test-case))) =>
       (parse-string (:expect test-case))
+
+    ;; 2,"JSON", "map"
+
+    ;; 3,"map", "JSON"
+    (parse-string (json-ld/expand (parse-string (:input test-case)))) =>
+      (parse-string (:expect test-case))
+
+    ;; 4,"map","map"
+
+    ;; 5,"remote","JSON"
+
+    ;; 6,"remote","map"
+
   )
 )

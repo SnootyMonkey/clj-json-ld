@@ -3,11 +3,15 @@
             [clojure.walk :refer (keywordize-keys)]
             [cheshire.core :refer (parse-string, parse-stream)]))
 
-(def possible-spec-dirs ["../json-ld.org/" "../spec/" "./spec/"])
+;; JSON-LD.org git repo may be in this repo or parent and may be called json-ld.org or spec
+(def possible-spec-dirs ["../json-ld.org/" "../spec/" "./json-ld.org/" "./spec/"])
 (def spec-location (first (filter #(.isDirectory (io/file %)) possible-spec-dirs)))
+;; test files are in the /test-suite/tests dir of the JSON-LD.org repo
 (def tests-location (str spec-location "test-suite/tests/"))
 
-(defn- load-manifest [manifest-file]
+(defn- load-manifest 
+  "Given a manifest file name, load it from the tests dir"
+  [manifest-file]
   (parse-stream (clojure.java.io/reader (str tests-location manifest-file))))
 
 (defn tests-from-manifest
@@ -20,7 +24,9 @@
     (map #(assoc % :expect (slurp (str tests-location (:expect %)))))
     (map #(assoc % :context (if (:context %) (slurp (str tests-location (:context %))) nil)))))
 
-(defn print-test [test-type test-case]
+(defn print-test
+  "Print output explaining the test case."
+  [test-type test-case]
   (println (str "\n" test-type) "Test:" (:name test-case))
   (println "Input:\n" (:input test-case))
   (println "Expected:\n" (:expect test-case)))
