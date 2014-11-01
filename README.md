@@ -39,11 +39,10 @@ Developers who require any of the facilities listed above or need to serialize a
 
 ## Installation
 
-TBD.
+:bomb: This library is currently a WIP stub and is not yet usable. Stay tuned!
+
 
 ## Usage
-
-:bomb: This library is currently a WIP stub and is not yet usable. Stay tuned!
 
 At the REPL:
 
@@ -69,6 +68,18 @@ More detailed usage instructions are in the API documentation.
 ## Testing
 
 The [JSON-LD Test Suite](http://json-ld.org/test-suite/) is used to verify [JSON-LD Processor conformance](http://json-ld.org/test-suite/reports/). clj-json-ld uses the JSON-LD Test Suite, as well as some additional tests.
+
+To run the tests you need to clone the JSON-LD GitHub repository as a peer directiory to this repository:
+
+```console
+git clone https://github.com/json-ld/json-ld.org.git
+```
+
+Then run the tests from this repository with:
+
+```console
+lein midje
+```
 
 ## Development and Contributing
 
