@@ -12,9 +12,9 @@
   Compaction is performed using the provided context. If no context is provided, the
   input document is compacted using the top-level context of the document.
 
-  **input** - a JSON-LD document as a Unicode text string, or a string URL to a remote JSON-LD
-  document, or a [Map](http://clojure.org/data_structures#Data%20Structures-Maps%20%28IPersistentMap%29)
-  representing a parsed JSON-LD document.
+  **input** - a JSON-LD document as a Unicode text string, or a
+  [Map](http://clojure.org/data_structures#Data%20Structures-Maps%20%28IPersistentMap%29)
+  representing a parsed JSON-LD document, or a string URL to a remote JSON-LD document.
   
   **context** *(optional)* - If you want to provide `options` but not a `context`, pass in `nil`
   for the `context`.
@@ -35,9 +35,9 @@
   Expands the given JSON-LD input according to the steps in the
   [JSON-LD Expansion Algorithm](http://www.w3.org/TR/json-ld-api/#expansion-algorithm).
 
-  **input** - a JSON-LD document as a Unicode text string, or a string URL to a remote JSON-LD
-  document, or a [Map](http://clojure.org/data_structures#Data%20Structures-Maps%20%28IPersistentMap%29)
-  representing a parsed JSON-LD document.
+  **input** - a JSON-LD document as a Unicode text string, or a
+  [Map](http://clojure.org/data_structures#Data%20Structures-Maps%20%28IPersistentMap%29)
+  representing a parsed JSON-LD document, or a string URL to a remote JSON-LD document.
   
   **options** *(optional)* - 
 
@@ -54,9 +54,9 @@
   Flattens and compacts the given JSON-LD input according to the steps in the
   [JSON-LD Flattening Algorithm](http://www.w3.org/TR/json-ld-api/#flattening-algorithm).
 
-  **input** - a JSON-LD document as a Unicode text string, or a string URL to a remote JSON-LD
-  document, or a [Map](http://clojure.org/data_structures#Data%20Structures-Maps%20%28IPersistentMap%29)
-  representing a parsed JSON-LD document.
+  **input** - a JSON-LD document as a Unicode text string, or a
+  [Map](http://clojure.org/data_structures#Data%20Structures-Maps%20%28IPersistentMap%29)
+  representing a parsed JSON-LD document, or a string URL to a remote JSON-LD document.
   
   **context** *(optional)* - If you want to provide `options` but not a `context`, pass in `nil`
   for the `context`.

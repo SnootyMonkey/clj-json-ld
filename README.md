@@ -1,5 +1,5 @@
--= clj-json-ld =- [![Build Status](https://travis-ci.org/SnootyMonkey/clj-json-ld.png?branch=master)](https://travis-ci.org/SnootyMonkey/clj-json-ld)
-=================
+--=  clj-json-ld  =--  [![Build Status](https://travis-ci.org/SnootyMonkey/clj-json-ld.png?branch=master)](https://travis-ci.org/SnootyMonkey/clj-json-ld)
+=====================
 
 The Clojure library for [JSON-LD](http://json-ld.org/) (JavaScript Object Notation for Linking Data).
 
@@ -7,7 +7,9 @@ The Clojure library for [JSON-LD](http://json-ld.org/) (JavaScript Object Notati
 
 ## Introduction
 
-clj-json-ld implements the [JSON LD 1.0 Processing Algorithms and API](http://www.w3.org/TR/json-ld-api/). Whoop-de-doo! Why should you care?
+clj-json-ld implements the [JSON LD 1.0 Processing Algorithms and API](http://www.w3.org/TR/json-ld-api/).
+
+Whoop-de-doo! Why should you care?
 
 
 ### Benefits of Linked Data

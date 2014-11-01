@@ -38,7 +38,7 @@
 
       :codox {
         :sources ["src/"]
-        :include clj-json-ld.core
+        :include [clj-json-ld.core clj-json-ld.json-ld]
         :output-dir "doc/API"
         :src-dir-uri "http://github.com/SnootyMonkey/clj-json-ld/blob/master/"
         :src-linenum-anchor-prefix "L" ; for Github
