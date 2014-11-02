@@ -37,10 +37,125 @@ JSON-LD is designed to be usable directly as JSON, with no knowledge of [RDF](ht
 
 Developers who require any of the facilities listed above or need to serialize/deserialize an RDF Graph or RDF Dataset in a JSON-based syntax will find JSON-LD of interest.
 
+### JSON-LD 101
 
-## Capabilities
+:memo: Need to update these sample JSON and JSON-LD documents. Just placeholders at the moment.
+
+Let's take a look at some very simple JSON about a web page that you might get back from an API:
+
+```json
+{
+  "name": "Manu Sporny",
+  "location": "http://manu.sporny.org/",
+  "image": "http://manu.sporny.org/images/manu.png"
+}
+```
+
+A different API might provide this JSON about the very same web page:
+
+```json
+{
+  "name": "Manu Sporny",
+  "location": "http://manu.sporny.org/",
+  "image": "http://manu.sporny.org/images/manu.png"
+}
+```
+
+As a human, it's easy to deduce what this is all about. We have the name of a person and a URL to their home page and to an image of them.
+
+Is image the name of a file? A full URL? A relative URL? A base-64 encoded image? 
+
+The same JSON documents converted to JSON-LD document removes the ambiguity:
+
+```json
+{
+  "http://schema.org/name": "Manu Sporny",
+  "http://schema.org/url": { "@id": "http://manu.sporny.org/" },  ← The '@id' keyword means 'This value is an identifier that is an IRI'
+  "http://schema.org/image": { "@id": "http://manu.sporny.org/images/manu.png" }
+}
+```
+
+and:
+
+```json
+{
+  "http://schema.org/name": "Manu Sporny",
+  "http://schema.org/url": { "@id": "http://manu.sporny.org/" },  ← The '@id' keyword means 'This value is an identifier that is an IRI'
+  "http://schema.org/image": { "@id": "http://manu.sporny.org/images/manu.png" }
+}
+```
+
+But who wants their JSON documents to look like that? A computer algorithm that's dealing with JSON documents from different sources does, as it removes ambiguity, but you don't want to read and write your JSON documents like that all the time. JSON-LD allows you to move these semantics out of the JSON document and into a context.
+
+The context for the above JSON-LD looks like this:
+
+```json
+{
+  "@context":
+  {
+    "name": "http://schema.org/name",  ← This means that 'name' is shorthand for 'http://schema.org/name' 
+    "image": {
+      "@id": "http://schema.org/image",  ← This means that 'image' is shorthand for 'http://schema.org/image' 
+      "@type": "@id"  ← This means that a string value associated with 'image' should be interpreted as an identifier that is an IRI 
+    },
+    "homepage": {
+      "@id": "http://schema.org/url",  ← This means that 'homepage' is shorthand for 'http://schema.org/url' 
+      "@type": "@id"  ← This means that a string value associated with 'homepage' should be interpreted as an identifier that is an IRI 
+    }
+  }
+}
+```
+
+and:
+
+```json
+{
+  "@context":
+  {
+    "name": "http://schema.org/name",  ← This means that 'name' is shorthand for 'http://schema.org/name' 
+    "image": {
+      "@id": "http://schema.org/image",  ← This means that 'image' is shorthand for 'http://schema.org/image' 
+      "@type": "@id"  ← This means that a string value associated with 'image' should be interpreted as an identifier that is an IRI 
+    },
+    "homepage": {
+      "@id": "http://schema.org/url",  ← This means that 'homepage' is shorthand for 'http://schema.org/url' 
+      "@type": "@id"  ← This means that a string value associated with 'homepage' should be interpreted as an identifier that is an IRI 
+    }
+  }
+}
+```
+
+If that context is then placed it an accessible location online, say at `http://json-ld.org/contexts/person.jsonld`, then the original JSON can be used, with all the semantic ambiguity removed, with only the addition of a `@context` property to make it a JSON-LD document:
+
+```json
+{
+  "@context": "http://json-ld.org/contexts/person.jsonld",
+  "name": "Manu Sporny",
+  "homepage": "http://manu.sporny.org/",
+  "image": "http://manu.sporny.org/images/manu.png"
+}
+```
+
+and:
+
+```json
+{
+  "@context": "http://json-ld.org/contexts/person.jsonld",
+  "name": "Manu Sporny",
+  "homepage": "http://manu.sporny.org/",
+  "image": "http://manu.sporny.org/images/manu.png"
+}
+```
+
+A JSON-LD processor, like clj-json-ld, helps you transform your JSON-LD documents in between these different valid JSON-LD formats, some more explicit for semantic reasoning by algorithms, and others more readable and compact for humans and for transmission.
+
+:memo: Show the document expanded, compacted and flattened.
+
+
+### Capabilities of clj-json-ld
 
 clj-json-ld can perform the [expansion](http://www.w3.org/TR/json-ld/#expanded-document-form), [compaction](http://www.w3.org/TR/json-ld/#compacted-document-form), and [flattening](http://www.w3.org/TR/json-ld/#flattened-document-form) operations defined in the [expansion](http://www.w3.org/TR/json-ld-api/#expansion-algorithm), [compaction](http://www.w3.org/TR/json-ld-api/#compaction-algorithm) and [flattening](http://www.w3.org/TR/json-ld-api/#flattening-algorithm) sections of the [processing specification](http://www.w3.org/TR/json-ld-api/).
+
 
 ## Installation
 
@@ -69,6 +184,7 @@ WARNING: flatten already refers to: #'clojure.core/flatten in namespace: user, b
 ```
 
 More detailed usage instructions are in the API documentation.
+
 
 ## Testing
 
@@ -99,6 +215,7 @@ If you'd like to enhance clj-json-ld, please fork it [on GitHub](https://github.
 * Don't submit über pull requests, keep your changes atomic.
 * Have fun!
 
+
 ### Branches
 
 There are 2 long lived branches in the repository:
@@ -108,6 +225,16 @@ There are 2 long lived branches in the repository:
 [dev](https://github.com/SnootyMonkey/clj-json-ld/tree/dev) - development mainline, picked up by [continual integration on Travis-CI](https://travis-ci.org/SnootyMonkey/clj-json-ld)
 
 Additional short lived feature branches will come and go.
+
+
+## Acknowledgements
+
+Thank you to the creators of the [JSON-LD 1.0 W3C Recommendation](http://www.w3.org/TR/json-ld/) for their hard work in creating the specification and the comprehensive test suite. Thank you to the authors and editors for the very clear spec writing.
+
+The Benefits section of this README document is lifted with only very slight modifications from the [JSON-LD 1.0 W3C Recommendation](http://www.w3.org/TR/json-ld/).
+
+Thank you to [Gregg Kellog](https://github.com/gkellogg), author of the [json-ld Ruby processor](https://github.com/ruby-rdf/json-ld/), and [Dave Longley](https://github.com/dlongley), author of the [pyld Python processor](https://github.com/digitalbazaar/pyld), for providing prior implementations that were useful to compare to the spec to clarify confusing bits.
+
 
 ## License
 
