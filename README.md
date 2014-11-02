@@ -5,6 +5,7 @@ The Clojure library for [JSON-LD](http://json-ld.org/) (JavaScript Object Notati
 
 "Data is messy and disconnected. JSON-LD organizes and connects it, creating a better Web."
 
+
 ## Introduction
 
 clj-json-ld implements the [JSON LD 1.0 Processing Algorithms and API](http://www.w3.org/TR/json-ld-api/)
@@ -37,6 +38,7 @@ JSON-LD is designed to be usable directly as JSON, with no knowledge of [RDF](ht
 
 Developers who require any of the facilities listed above or need to serialize/deserialize an RDF Graph or RDF Dataset in a JSON-based syntax will find JSON-LD of interest.
 
+
 ### JSON-LD 101
 
 :memo: Need to update these sample JSON and JSON-LD documents. Just placeholders at the moment.
@@ -61,11 +63,11 @@ A different API might provide this JSON about the very same web page:
 }
 ```
 
-As a human, it's easy to deduce what this is all about. We have the name of a person and a URL to their home page and to an image of them.
+As a human, it's easy to deduce what this is all about. We have the ...
 
-Is image the name of a file? A full URL? A relative URL? A base-64 encoded image? 
+As a computer algorithm however, this is as clear as mud. Is image the name of a file? A full URL? A relative URL? A base-64 encoded image? ...
 
-The same JSON documents converted to JSON-LD document removes the ambiguity:
+The same JSON documents converted to JSON-LD document removes much of this ambiguity:
 
 ```json
 {
@@ -125,7 +127,9 @@ and:
 }
 ```
 
-If that context is then placed it an accessible location online, say at `http://json-ld.org/contexts/person.jsonld`, then the original JSON can be used, with all the semantic ambiguity removed, with only the addition of a `@context` property to make it a JSON-LD document:
+If that context is then embedded in its own section of the JSON-LD document, or placed in an accessible location online, say at `http://json-ld.org/contexts/person.jsonld`, then the original simpler JSON can be used, but with the semantic ambiguity removed. This is achieved with the addition of a `@context` property to make it a JSON-LD document.
+
+The context can be included by reference:
 
 ```json
 {
@@ -136,7 +140,7 @@ If that context is then placed it an accessible location online, say at `http://
 }
 ```
 
-and:
+Or the context can be directly embedded:
 
 ```json
 {
@@ -164,13 +168,13 @@ clj-json-ld can perform the [expansion](http://www.w3.org/TR/json-ld/#expanded-d
 
 ## Usage
 
-At the REPL:
+At the Clojure REPL:
 
 ```clojure
 (require '[clj-json-ld.core :as json-ld])
 ```
 
-In your namespace:
+In your Clojure namespace:
 
 ```clojure
 (ns your-app.core
