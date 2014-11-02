@@ -3,11 +3,9 @@
             [clojure.walk :refer (keywordize-keys)]
             [cheshire.core :refer (parse-string, parse-stream)]))
 
-;; JSON-LD.org git repo may be in this repo or parent and may be called json-ld.org or spec
-(def possible-spec-dirs ["../json-ld.org/" "../spec/" "./json-ld.org/" "./spec/"])
-(def spec-location (first (filter #(.isDirectory (io/file %)) possible-spec-dirs)))
-;; test files are in the /test-suite/tests dir of the JSON-LD.org repo
-(def tests-location (str spec-location "test-suite/tests/"))
+;; JSON-LD tests git repo may be in this dir or the parent dir and may be called json-ld-tests or tests
+(def possible-spec-dirs ["../json-ld-tests/" "../tests/" "./json-ld-tests/" "./tests/"])
+(def tests-location (first (filter #(.isDirectory (io/file %)) possible-spec-dirs)))
 
 (defn- load-manifest 
   "Given a manifest file name, load it from the tests dir"

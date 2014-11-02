@@ -1,7 +1,7 @@
 language: clojure
 lein: lein2
 script: 
-  - git clone https://github.com/json-ld/json-ld.org.git spec
+  - git clone https://github.com/json-ld/tests json-ld-tests
   - lein2 test!
 branches:
   only:

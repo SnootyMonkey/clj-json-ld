@@ -74,10 +74,10 @@ More detailed usage instructions are in the API documentation.
 
 The [JSON-LD Test Suite](http://json-ld.org/test-suite/) is used to verify [JSON-LD Processor conformance](http://json-ld.org/test-suite/reports/). clj-json-ld uses the JSON-LD Test Suite, as well as some additional tests.
 
-To run the tests you need to clone the JSON-LD GitHub repository as a peer directiory to this repository:
+To run the tests you need to clone the [JSON-LD tests GitHub repository](https://github.com/json-ld/tests) as a peer directiory to this repository:
 
 ```console
-git clone https://github.com/json-ld/json-ld.org.git
+git clone https://github.com/json-ld/tests json-ld-tests
 ```
 
 Then run the tests from this repository with:
