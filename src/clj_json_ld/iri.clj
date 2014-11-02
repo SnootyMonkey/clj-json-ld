@@ -6,6 +6,18 @@
 ;; http://en.wikipedia.org/wiki/Internationalized_resource_identifier
 ;; RFC 3987 http://tools.ietf.org/html/rfc3987
 
+;; Example of a compact IRI (foaf:name)
+;; {
+;;   "@context":
+;;   {
+;;     "foaf": "http://xmlns.com/foaf/0.1/"
+;; ...
+;;   },
+;;   "@type": "foaf:Person"
+;;   "foaf:name": "Dave Longley",
+;; ...
+;; }
+
 (defun- expand-it 
   
   ; 1) If value is a keyword or null, return value as is.

@@ -7,7 +7,8 @@ The Clojure library for [JSON-LD](http://json-ld.org/) (JavaScript Object Notati
 
 ## Introduction
 
-clj-json-ld implements the [JSON LD 1.0 Processing Algorithms and API](http://www.w3.org/TR/json-ld-api/).
+clj-json-ld implements the [JSON LD 1.0 Processing Algorithms and API](http://www.w3.org/TR/json-ld-api/)
+as a [conforming JSON-LD Processor](http://www.w3.org/TR/json-ld-api/#conformance).
 
 Whoop-de-doo! Why should you care?
 
@@ -27,15 +28,19 @@ JSON-LD provides:
 * a way to disambiguate keys shared among different JSON documents,
 * a mechanism in which a value in a JSON object may refer to a JSON object on a different site on the Web,
 * the ability to annotate strings in JSON objects with their language,
-* a way to associate datatypes with values such as dates and times,
-* and a facility to express one or more directed graphs, such as a social network, in a single document.
+* a way to associate datatypes with string values such as dates and times,
+* and a facility to express one or more directed graphs, such as a social network, or a taxonomy, in a single document.
 
 The JSON-LD syntax is designed to not disturb already deployed systems running on JSON, but provide a smooth upgrade path from JSON to JSON-LD. Since the shape of such data varies wildly, JSON-LD features mechanisms to reshape documents into a deterministic structure which simplifies their processing.
 
-JSON-LD is designed to be usable directly as JSON, with no knowledge of [RDF](http://www.w3.org/TR/2014/PR-rdf11-concepts-20140109/). It is also designed to be usable as RDF, if desired, for use with other Linked Data technologies like SPARQL.
+JSON-LD is designed to be usable directly as JSON, with no knowledge of [RDF](http://www.w3.org/TR/2014/PR-rdf11-concepts-20140109/). It is an alternative syntax for the same underlying data model though, so it is also designed to be transformable to/from RDF, if desired, for use with other Linked Data technologies like SPARQL.
 
-Developers who require any of the facilities listed above or need to serialize an RDF Graph or RDF Dataset in a JSON-based syntax will find JSON-LD of interest.
+Developers who require any of the facilities listed above or need to serialize/deserialize an RDF Graph or RDF Dataset in a JSON-based syntax will find JSON-LD of interest.
 
+
+## Capabilities
+
+clj-json-ld can perform the [expansion](http://www.w3.org/TR/json-ld/#expanded-document-form), [compaction](http://www.w3.org/TR/json-ld/#compacted-document-form), and [flattening](http://www.w3.org/TR/json-ld/#flattened-document-form) operations defined in the [expansion](http://www.w3.org/TR/json-ld-api/#expansion-algorithm), [compaction](http://www.w3.org/TR/json-ld-api/#compaction-algorithm) and [flattening](http://www.w3.org/TR/json-ld-api/#flattening-algorithm) sections of the [processing specification](http://www.w3.org/TR/json-ld-api/).
 
 ## Installation
 
@@ -57,7 +62,7 @@ In your namespace:
   (:require [clj-json-ld.core :as :json-ld]))  
 ```
 
-:warning: The `flatten` function specified in [JSON-LD 1.0 Processing Algorithms and API](http://www.w3.org/TR/json-ld-api/) conflicts with Clojure core's [flatten](https://clojuredocs.org/clojure.core/flatten) function, so unless you use `:as` in your require you'll see a warning about the replacement:
+:warning: The `flatten` function specified in [JSON-LD 1.0 Processing Algorithms and API](http://www.w3.org/TR/json-ld-api/) conflicts with Clojure core's [flatten](https://clojuredocs.org/clojure.core/flatten) function, so unless you use `:as` in your require, or exclude Clojure's `flatten` from your namespace with `(:refer-clojure :exclude [flatten])`, you'll see a warning about the replacement:
 
 ```
 WARNING: flatten already refers to: #'clojure.core/flatten in namespace: user, being replaced by: #'clj-json-ld.core/flatten
