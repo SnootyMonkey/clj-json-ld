@@ -1,4 +1,4 @@
-(ns clj-json-ld.flattening
+(ns clj-json-ld.spec.flattening
   (:refer-clojure :exclude [flatten])
   (:require [midje.sweet :refer :all]
             [cheshire.core :refer (parse-string)]

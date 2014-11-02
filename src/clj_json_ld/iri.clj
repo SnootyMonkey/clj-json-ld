@@ -1,5 +1,6 @@
 (ns clj-json-ld.iri
-  (:require [clj.string :refer (blank?)]
+  (:require [clojure.string :refer (blank?)]
+            [defun :refer (defun-)]
             [clj-json-ld.json-ld :refer (json-ld-keyword?)]))
             
 ;; Internationalized Resource Identifier (IRI)
@@ -30,8 +31,11 @@
   ; and defined.
 
   ; 3) If vocab is true and the active context has a term definition for value, return the associated IRI mapping.
+  ([args :guard #(and (get-in % [:options :vocab]) (get-in % [:active-context :terms (:value %)]))]
+    (get-in args [:active-context :terms (:value args)]))
 
-  ; 4) If value contains a colon (:), it is either an absolute IRI, a compact IRI, or a blank node identifier
+  ; 4) If value contains a colon (:), it is either an absolute IRI ("http://schema.org/name"), a compact IRI ("foaf:name"),
+  ; or a blank node identifier ("_:")
 
   ; 5) If vocab is true, and active context has a vocabulary mapping, return the result of concatenating the vocabulary mapping with value.
 
@@ -39,7 +43,7 @@
   ; Only the basic algorithm in section 5.2 of [RFC3986] is used; neither Syntax-Based Normalization nor
   ; Scheme-Based Normalization are performed. Characters additionally allowed in IRI references are treated in the
   ; same way that unreserved characters are treated in URI references, per section 6.5 of [RFC3987].
-  ([args :guard #(:document-relative (:options args))] )
+  ([args :guard #(:document-relative (:options %))] "foo")
 
   ; 7) Return value as is.
   ([args] (:value args)))
@@ -61,7 +65,7 @@
   are passed to this algorithm. This allows for term definition dependencies to be
   processed via the Create Term Definition algorithm.
 
-  **active-content** -
+  **active-context** -
   
   **value** - value to be expanded
   

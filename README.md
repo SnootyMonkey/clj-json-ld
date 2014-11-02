@@ -82,7 +82,7 @@ and:
 ```json
 {
   "http://schema.org/name": "Manu Sporny",
-  "http://schema.org/url": { "@id": "http://manu.sporny.org/" },  ← The '@id' keyword means 'This value is an identifier that is an IRI'
+  "http://schema.org/url": { "@id": "http://manu.sporny.org/" },  ← The '@id' keyword means 'This value is an identifier that is an IRI (a URL)'
   "http://schema.org/image": { "@id": "http://manu.sporny.org/images/manu.png" }
 }
 ```
@@ -98,11 +98,11 @@ The context for the above JSON-LD looks like this:
     "name": "http://schema.org/name",  ← This means that 'name' is shorthand for 'http://schema.org/name' 
     "image": {
       "@id": "http://schema.org/image",  ← This means that 'image' is shorthand for 'http://schema.org/image' 
-      "@type": "@id"  ← This means that a string value associated with 'image' should be interpreted as an identifier that is an IRI 
+      "@type": "@id"  ← This means that a string value associated with 'image' should be interpreted as an identifier that is an IRI (a URL)
     },
     "homepage": {
       "@id": "http://schema.org/url",  ← This means that 'homepage' is shorthand for 'http://schema.org/url' 
-      "@type": "@id"  ← This means that a string value associated with 'homepage' should be interpreted as an identifier that is an IRI 
+      "@type": "@id"  ← This means that a string value associated with 'homepage' should be interpreted as an identifier that is an IRI (a URL)
     }
   }
 }
@@ -117,11 +117,11 @@ and:
     "name": "http://schema.org/name",  ← This means that 'name' is shorthand for 'http://schema.org/name' 
     "image": {
       "@id": "http://schema.org/image",  ← This means that 'image' is shorthand for 'http://schema.org/image' 
-      "@type": "@id"  ← This means that a string value associated with 'image' should be interpreted as an identifier that is an IRI 
+      "@type": "@id"  ← This means that a string value associated with 'image' should be interpreted as an identifier that is an IRI (a URL)
     },
     "homepage": {
       "@id": "http://schema.org/url",  ← This means that 'homepage' is shorthand for 'http://schema.org/url' 
-      "@type": "@id"  ← This means that a string value associated with 'homepage' should be interpreted as an identifier that is an IRI 
+      "@type": "@id"  ← This means that a string value associated with 'homepage' should be interpreted as an identifier that is an IRI (a URL)
     }
   }
 }
@@ -144,9 +144,34 @@ Or the context can be directly embedded:
 
 ```json
 {
-  "@context": "http://json-ld.org/contexts/person.jsonld",
+  "@context":
+  {
+    "name": "http://schema.org/name",
+    "image": {
+      "@id": "http://schema.org/image",
+      "@type": "@id"
+    },
+    "homepage": {
+      "@id": "http://schema.org/url",
+      "@type": "@id"
+    }
+  },
   "name": "Manu Sporny",
   "homepage": "http://manu.sporny.org/",
+  "image": "http://manu.sporny.org/images/manu.png"
+}
+```
+
+Or the context can be left out completely and provided by an HTTP Link Header:
+
+```
+HTTP/1.1 200 OK
+Content-Type: application/json
+Link: <http://json-ld.org/contexts/person.jsonld>; rel="http://www.w3.org/ns/json-ld#context"; type="application/ld+json"
+
+{
+  "name": "Manu Sporny",
+  "location": "http://manu.sporny.org/",
   "image": "http://manu.sporny.org/images/manu.png"
 }
 ```
@@ -237,7 +262,7 @@ Thank you to the creators of the [JSON-LD 1.0 W3C Recommendation](http://www.w3.
 
 The Benefits section of this README document is lifted with only very slight modifications from the [JSON-LD 1.0 W3C Recommendation](http://www.w3.org/TR/json-ld/).
 
-Thank you to [Gregg Kellog](https://github.com/gkellogg), author of the [json-ld Ruby processor](https://github.com/ruby-rdf/json-ld/), and [Dave Longley](https://github.com/dlongley), author of the [pyld Python processor](https://github.com/digitalbazaar/pyld), for providing prior implementations that were useful to compare to the spec to clarify confusing bits.
+Thank you to [Gregg Kellog](https://github.com/gkellogg), author of the [json-ld Ruby processor](https://github.com/ruby-rdf/json-ld/), and [Dave Longley](https://github.com/dlongley), author of the [pyld Python processor](https://github.com/digitalbazaar/pyld), for providing prior implementations that were useful to study, particularly in the area of testing ideas.
 
 
 ## License

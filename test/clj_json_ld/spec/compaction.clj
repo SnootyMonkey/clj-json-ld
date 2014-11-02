@@ -1,4 +1,4 @@
-(ns clj-json-ld.compaction
+(ns clj-json-ld.spec.compaction
   (:require [midje.sweet :refer :all]
             [cheshire.core :refer (parse-string)]
             [clj-json-ld.util.spec-test-suite :refer :all]
