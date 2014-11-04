@@ -1,4 +1,11 @@
 (ns clj-json-ld.iri
+  "
+  Implement IRI expansion as defined in the
+  [IRI Expansion section](http://www.w3.org/TR/json-ld-api/#iri-expansion).
+
+  Implement IRI compaction as defined in the
+  [IRI Compaction section](http://www.w3.org/TR/json-ld-api/#iri-compaction).
+  "
   (:require [clojure.string :refer (blank? split join)]
             [defun :refer (defun-)]
             [clojure.core.match :refer (match)]

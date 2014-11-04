@@ -1,7 +1,8 @@
-(ns clj-json-ld.value)
+(ns clj-json-ld.value
+  "
+  Implement value expansion as defined in the
+  [Value Expansion section](http://www.w3.org/TR/json-ld-api/#value-expansion).
 
-;; http://www.w3.org/TR/json-ld-api/#value-expansion
-;; expand
-
-;; http://www.w3.org/TR/json-ld-api/#value-compaction
-;; compact
+  Implement value compaction as defined in the
+  [Value Compaction section](http://www.w3.org/TR/json-ld-api/#value-compaction).
+  ")

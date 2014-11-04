@@ -1,4 +1,8 @@
-(ns clj-json-ld.json-ld)
+(ns clj-json-ld.json-ld
+  "
+  Define the JSON-LD keywords as specified in the
+  [Syntax Tokens and Keywords section](http://www.w3.org/TR/2014/REC-json-ld-20140116/#syntax-tokens-and-keywords).
+  ")
 
 (def keywords #{
   "@context" ; Used to define the short-hand names that are used throughout a JSON-LD document. These short-hand names are called terms and help developers to express specific identifiers in a compact manner. The @context keyword is described in detail in section 5.1 The Context.

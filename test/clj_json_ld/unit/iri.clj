@@ -1,8 +1,12 @@
 (ns clj-json-ld.unit.iri
+  "
+  Test IRI expansion as defined here: http://www.w3.org/TR/json-ld-api/#iri-expansion
+
+  Test IRI compaction as defined here: http://www.w3.org/TR/json-ld-api/#iri-compaction
+  "
   (:require [midje.sweet :refer :all]
             [clj-json-ld.json-ld :as json-ld]
             [clj-json-ld.iri :refer (expand-iri)]))
-
 
 (def context {
   "@base" "http://base/"
@@ -49,7 +53,6 @@
     (fact "_"
       (expand-iri context "_") => "_"))
 
-
   (facts "with :document-relative true"
 
     (fact "absolute IRI"
@@ -81,26 +84,7 @@
 
     (fact "_"
       (expand-iri context "_" document-relative) => "http://base/_"))
-    
-; context "@vocab" do
-;   {
-;     "absolute IRI" =>  ["http://example.org/", RDF::URI("http://example.org/")],
-;     "term" =>          ["ex",                  RDF::URI("http://example.org/")],
-;     "prefix:suffix" => ["ex:suffix",           RDF::URI("http://example.org/suffix")],
-;     "keyword" =>       ["@type",               "@type"],
-;     "empty" =>         [":suffix",             RDF::URI("http://empty/suffix")],
-;     "unmapped" =>      ["foo",                 RDF::URI("http://vocab/foo")],
-;     "empty term" =>    ["",                    RDF::URI("http://empty/")],
-;     "another abs IRI"=>["ex://foo",            RDF::URI("ex://foo")],
-;     "absolute IRI looking like a curie" =>
-;                        ["foo:bar",             RDF::URI("foo:bar")],
-;     "bnode" =>         ["_:t0",                RDF::Node("t0")],
-;     "_" =>             ["_",                   RDF::URI("http://underscore/")],
-;   }.each do |title, (input, result)|
-;     it title do
-;       expect(subject.expand_iri(input, :vocab => true)).to produce(result, @debug)
-;     end
-;   end
+
   (facts "with :vocab true"
 
     (fact "absolute IRI"
