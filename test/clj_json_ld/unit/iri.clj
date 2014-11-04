@@ -12,30 +12,11 @@
   "_" "http://underscore/"
 })
 
+(def document-relative {:document-relative true})
+(def vocab {:vocab true})
 
 (facts "about IRI Expansion"
-
-; context "relative IRI" do
-;   context "with no options" do
-;     {
-;       "absolute IRI" =>  ["http://example.org/", RDF::URI("http://example.org/")],
-;       "term" =>          ["ex",                  RDF::URI("ex")],
-;       "prefix:suffix" => ["ex:suffix",           RDF::URI("http://example.org/suffix")],
-;       "keyword" =>       ["@type",               "@type"],
-;       "empty" =>         [":suffix",             RDF::URI("http://empty/suffix")],
-;       "unmapped" =>      ["foo",                 RDF::URI("foo")],
-;       "empty term" =>    ["",                    RDF::URI("")],
-;       "another abs IRI"=>["ex://foo",            RDF::URI("ex://foo")],
-;       "absolute IRI looking like a curie" =>
-;                          ["foo:bar",             RDF::URI("foo:bar")],
-;       "bnode" =>         ["_:t0",                RDF::Node("t0")],
-;       "_" =>             ["_",                   RDF::URI("_")],
-;     }.each do |title, (input, result)|
-;       it title do
-;         expect(subject.expand_iri(input)).to produce(result, @debug)
-;       end
-;     end
-;   end  
+ 
   (facts "with no options"
 
     (fact "absolute IRI"
@@ -46,14 +27,14 @@
     (fact "term"
       (expand-iri context "ex") => "ex")
 
-    (future-fact "prefix:suffix"
+    (fact "prefix:suffix"
       (expand-iri context "ex:suffix") => "http://example.org/suffix")
 
     (fact "JSON-LD keyword"
       (doseq [json-ld-keyword json-ld/keywords]
         (expand-iri context json-ld-keyword) => json-ld-keyword))
 
-    (future-fact "empty"
+    (fact "empty"
       (expand-iri context ":suffix") => "http://empty/suffix")
 
     (fact "unmapped"
@@ -62,33 +43,44 @@
     (fact "empty term"
       (expand-iri context "") => "")
     
-    (future-fact "blank node"
-      (expand-iri context "_:t0") => "t0")
+    (fact "blank node"
+      (expand-iri context "_:t0") => "_:t0")
 
     (fact "_"
       (expand-iri context "_") => "_"))
 
-; context "with base IRI" do
-;   {
-;     "absolute IRI" =>  ["http://example.org/", RDF::URI("http://example.org/")],
-;     "term" =>          ["ex",                  RDF::URI("http://base/ex")],
-;     "prefix:suffix" => ["ex:suffix",           RDF::URI("http://example.org/suffix")],
-;     "keyword" =>       ["@type",               "@type"],
-;     "empty" =>         [":suffix",             RDF::URI("http://empty/suffix")],
-;     "unmapped" =>      ["foo",                 RDF::URI("http://base/foo")],
-;     "empty term" =>    ["",                    RDF::URI("http://base/")],
-;     "another abs IRI"=>["ex://foo",            RDF::URI("ex://foo")],
-;     "absolute IRI looking like a curie" =>
-;                        ["foo:bar",             RDF::URI("foo:bar")],
-;     "bnode" =>         ["_:t0",                RDF::Node("t0")],
-;     "_" =>             ["_",                   RDF::URI("http://base/_")],
-;   }.each do |title, (input, result)|
-;     it title do
-;       expect(subject.expand_iri(input, :documentRelative => true)).to produce(result, @debug)
-;     end
-;   end
-; end
-  (future-facts "with :document-relative true")
+
+  (facts "with :document-relative true"
+
+    (fact "absolute IRI"
+      (expand-iri context "http://example.org/" document-relative) => "http://example.org/"
+      (expand-iri context "ex://foo" document-relative) => "ex://foo"
+      (expand-iri context "foo:bar" document-relative) => "foo:bar")
+
+    (fact "term"
+      (expand-iri context "ex" document-relative) => "http://base/ex")
+
+    (fact "prefix:suffix"
+      (expand-iri context "ex:suffix" document-relative) => "http://example.org/suffix")
+
+    (fact "JSON-LD keyword"
+      (doseq [json-ld-keyword json-ld/keywords]
+        (expand-iri context json-ld-keyword document-relative) => json-ld-keyword))
+
+    (fact "empty"
+      (expand-iri context ":suffix" document-relative) => "http://empty/suffix")
+
+    (fact "unmapped"
+      (expand-iri context "foo" document-relative) => "http://base/foo")
+
+    (fact "empty term"
+      (expand-iri context "" document-relative) => "http://base/")
+
+    (fact "blank node"
+      (expand-iri context "_:t0" document-relative) => "_:t0")
+
+    (fact "_"
+      (expand-iri context "_" document-relative) => "http://base/_"))
     
 ; context "@vocab" do
 ;   {
@@ -109,4 +101,34 @@
 ;       expect(subject.expand_iri(input, :vocab => true)).to produce(result, @debug)
 ;     end
 ;   end
-  (future-facts "with :vocab true"))
+  (facts "with :vocab true"
+
+    (fact "absolute IRI"
+      (expand-iri context "http://example.org/" vocab) => "http://example.org/"
+      (expand-iri context "ex://foo" vocab) => "ex://foo"
+      (expand-iri context "foo:bar" vocab) => "foo:bar")
+
+    (fact "term"
+      (expand-iri context "ex" vocab) => "http://example.org/")
+
+    (fact "prefix:suffix"
+      (expand-iri context "ex:suffix" vocab) => "http://example.org/suffix")
+
+    (fact "JSON-LD keyword"
+      (doseq [json-ld-keyword json-ld/keywords]
+        (expand-iri context json-ld-keyword vocab) => json-ld-keyword))
+
+    (fact "empty"
+      (expand-iri context ":suffix" vocab) => "http://empty/suffix")
+
+    (fact "unmapped"
+      (expand-iri context "foo" vocab) => "http://vocab/foo")
+
+    (fact "empty term"
+      (expand-iri context "" vocab) => "http://empty/")
+
+    (fact "blank node"
+      (expand-iri context "_:t0" vocab) => "_:t0")
+
+    (fact "_"
+      (expand-iri context "_" vocab) => "http://underscore/")))

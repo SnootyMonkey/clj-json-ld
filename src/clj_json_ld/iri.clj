@@ -1,6 +1,7 @@
 (ns clj-json-ld.iri
-  (:require [clojure.string :refer (blank?)]
+  (:require [clojure.string :refer (blank? split join)]
             [defun :refer (defun-)]
+            [clojure.core.match :refer (match)]
             [clj-json-ld.json-ld :refer (json-ld-keyword?)]))
             
 ;; Internationalized Resource Identifier (IRI)
@@ -19,11 +20,31 @@
 ;; ...
 ;; }
 
+(defn- handle-colon [active-context value local-context]
+  ;; 4.1 Split value into a prefix and suffix at the first occurrence of a colon (:).
+  (let [parts (split value #":")
+        prefix (first parts)
+        suffix (join ":" (rest parts))]
+
+    (match [prefix suffix]
+      
+      ;; 4.2) If prefix is underscore (_) or suffix begins with double-forward-slash (//), return value as it is already an absolute IRI or a blank node identifier.
+      ["_" _] value
+      [_ (suffix :guard #(re-find #"^//" %))] value
+      
+      ;; 4.3) If local context is not null, it contains a key that equals prefix, and the value associated with the key that equals prefix in defined is not true, invoke the Create Term Definition algorithm, passing active context, local context, prefix as term, and defined. This will ensure that a term definition is created for prefix in active context during Context Processing.
+      
+      ;; 4.4) If active context contains a term definition for prefix, return the result of concatenating the IRI mapping associated with prefix and suffix.
+      [(prefix :guard #(get active-context %)) suffix] (str (get active-context prefix) suffix)
+      
+      ;; 4.5) Return value as it is already an absolute IRI.
+      [_ _] value)))
+
 (defun- expand-it 
   
   ; 1) If value is a keyword or null, return value as is.
   ([args :guard #(json-ld-keyword? (:value %))] (:value args))
-  ([args :guard #(blank? (:value %))] (:value args))
+  ([args :guard #(nil? (:value %))] (:value args))
   
   ; 2) If local context is not null, it contains a key that equals value, and the value
   ; associated with the key that equals value in defined is not true, invoke the
@@ -31,19 +52,24 @@
   ; and defined.
 
   ; 3) If vocab is true and the active context has a term definition for value, return the associated IRI mapping.
-  ([args :guard #(and (get-in % [:options :vocab]) (get-in % [:active-context :terms (:value %)]))]
-    (get-in args [:active-context :terms (:value args)]))
+  ([args :guard #(and (get-in % [:options :vocab]) (get-in % [:active-context (:value %)]))]
+    (get-in args [:active-context (:value args)]))
 
   ; 4) If value contains a colon (:), it is either an absolute IRI ("http://schema.org/name"), a compact IRI ("foaf:name"),
   ; or a blank node identifier ("_:")
+  ([args :guard #(.contains (:value %) ":")]
+    (handle-colon (:active-context args) (:value args) (get-in args [:options :local-context])))
 
   ; 5) If vocab is true, and active context has a vocabulary mapping, return the result of concatenating the vocabulary mapping with value.
+  ([args :guard #(and (get-in % [:options :vocab]) (get-in % [:active-context "@vocab"]))]
+    (str (get-in args [:active-context "@vocab"]) (:value args)))
 
   ; 6) Otherwise, if document relative is true, set value to the result of resolving value against the base IRI.
   ; Only the basic algorithm in section 5.2 of [RFC3986] is used; neither Syntax-Based Normalization nor
   ; Scheme-Based Normalization are performed. Characters additionally allowed in IRI references are treated in the
   ; same way that unreserved characters are treated in URI references, per section 6.5 of [RFC3987].
-  ([args :guard #(:document-relative (:options %))] "foo")
+  ([args :guard #(:document-relative (:options %))]
+    (str (get-in args [:active-context "@base"]) (:value args)))
 
   ; 7) Return value as is.
   ([args] (:value args)))
@@ -65,7 +91,7 @@
   are passed to this algorithm. This allows for term definition dependencies to be
   processed via the Create Term Definition algorithm.
 
-  **active-context** -
+  **active-context** - context map used to resolve terms
   
   **value** - value to be expanded
   
