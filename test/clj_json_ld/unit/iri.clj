@@ -19,11 +19,11 @@
 (def document-relative {:document-relative true})
 (def vocab {:vocab true})
 
-(facts "about IRI Expansion"
+(facts "about IRI expansion"
  
   (facts "with no options"
 
-    (fact "absolute IRI"
+    (facts "absolute IRI"
       (expand-iri context "http://example.org/") => "http://example.org/"
       (expand-iri context "ex://foo") => "ex://foo"
       (expand-iri context "foo:bar") => "foo:bar")
