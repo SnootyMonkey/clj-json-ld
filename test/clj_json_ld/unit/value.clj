@@ -7,22 +7,19 @@
   (:require [midje.sweet :refer :all]
             [clj-json-ld.value :refer (expand-value)]))
 
-; subject {
-;   ctx = context.parse({
-;     "dc" => RDF::DC.to_uri.to_s,
-;     "ex" => "http://example.org/",
-;     "foaf" => RDF::FOAF.to_uri.to_s,
-;     "xsd" => "http://www.w3.org/2001/XMLSchema#",
-;     "foaf:age" => {"@type" => "xsd:integer"},
-;     "foaf:knows" => {"@type" => "@id"},
-;     "dc:created" => {"@type" => "xsd:date"},
-;     "ex:integer" => {"@type" => "xsd:integer"},
-;     "ex:double" => {"@type" => "xsd:double"},
-;     "ex:boolean" => {"@type" => "xsd:boolean"},
-;   })
-;   @debug.clear
-;   ctx
-; }
+; ctx = context.parse({
+;   "dc" => RDF::DC.to_uri.to_s,
+;   "ex" => "http://example.org/",
+;   "foaf" => RDF::FOAF.to_uri.to_s,
+;   "xsd" => "http://www.w3.org/2001/XMLSchema#",
+;   "foaf:age" => {"@type" => "xsd:integer"},
+;   "foaf:knows" => {"@type" => "@id"},
+;   "dc:created" => {"@type" => "xsd:date"},
+;   "ex:integer" => {"@type" => "xsd:integer"},
+;   "ex:double" => {"@type" => "xsd:double"},
+;   "ex:boolean" => {"@type" => "xsd:boolean"},
+; })
+
 (def context {
   "ex" "http://example.org/"
   "foaf:knows" {"@type" "@id"}
@@ -30,7 +27,6 @@
 
 (facts "about value expansion"
 
-; What's this??
  ; %w(boolean integer string dateTime date time).each do |dt|
  ;    it "expands datatype xsd:#{dt}" do
  ;      expect(subject.expand_value("foo", RDF::XSD[dt])).to produce({"@id" => "http://www.w3.org/2001/XMLSchema##{dt}"}, @debug)
@@ -71,11 +67,6 @@
 ;   "rdf date " =>      ["foo", RDF::Literal(Date.parse("2011-12-27")), {"@value" => "2011-12-27", "@type" => RDF::XSD.date.to_s}],
 ;   "rdf nonNeg" =>     ["foo", RDF::Literal::NonNegativeInteger.new(1), {"@value" => "1", "@type" => RDF::XSD.nonNegativeInteger}],
 ;   "rdf float" =>      ["foo", RDF::Literal::Float.new(1.0), {"@value" => "1.0", "@type" => RDF::XSD.float}],
-; }.each do |title, (key, compacted, expanded)|
-;   it title do
-;     expect(subject.expand_value(key, compacted)).to produce(expanded, @debug)
-;   end
-; end
 
 )
 
