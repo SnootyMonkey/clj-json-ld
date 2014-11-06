@@ -53,7 +53,7 @@
     (fact "_"
       (expand-iri context "_") => "_"))
 
-  (facts "with :document-relative true"
+  (facts "with :document-relative true in the options"
 
     (fact "absolute IRI"
       (expand-iri context "http://example.org/" document-relative) => "http://example.org/"
@@ -85,7 +85,7 @@
     (fact "_"
       (expand-iri context "_" document-relative) => "http://base/_"))
 
-  (facts "with :vocab true"
+  (facts "with :vocab true in the options"
 
     (fact "absolute IRI"
       (expand-iri context "http://example.org/" vocab) => "http://example.org/"
