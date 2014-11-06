@@ -5,6 +5,18 @@ The Clojure library for [JSON-LD](http://json-ld.org/) (JavaScript Object Notati
 
 "Data is messy and disconnected. JSON-LD organizes and connects it, creating a better Web."
 
+* [Introduction](#introduction)
+  * [Benefits of Linked Data](#benefits-of-linked-data)
+  * [Benefits of JSON-LD](#benefits-of-json-ld)
+  * [JSON-LD 101](#json-ld-101)
+  * [Capabilities of clj-json-ld](#capabilities-of-clj-json-ld)
+* [Installation](#installation)
+* [Usage](#usage)
+* [Testing](#testing)
+* [Development and Contributing](#development-and-contributing)
+  * [Branches](#branches)
+* [Acknowlegements](#acknowlegements)
+* [License](#license)
 
 ## Introduction
 
