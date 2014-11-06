@@ -53,13 +53,11 @@ Developers who require any of the facilities listed above or need to serialize/d
 
 ### JSON-LD 101
 
-:memo: Need to update these sample JSON and JSON-LD documents. Just placeholders at the moment.
-
 Let's take a look at some very simple JSON about a book that you might get back from an API:
 
 ```json
 {
-  "name": "Myth of Sisyphus"
+  "name": "Myth of Sisyphus",
   "author": "Albert Camus",
   "location": "http://amazon.com/Myth-Sisyphus-Albert-Camus/dp/7500133340/",
   "image": "http://ecx.images-amazon.com/images/I/61hJVrZgBBL.jpg"
@@ -72,7 +70,7 @@ A different API might provide this JSON about the very same book:
 {
   "author": "Albert Camus",
   "title": "Myth of Sisyphus",
-  "image": "myth.png"
+  "image": "myth.png",
   "location": "3rd Floor, Manning Bldg.",
   "lang": "en-US"
 }
@@ -86,7 +84,7 @@ The same JSON documents converted to JSON-LD documents remove much of this ambig
 
 ```json
 {
-  "http://www.schema.org/name": "Myth of Sisyphus"
+  "http://www.schema.org/name": "Myth of Sisyphus",
   "http://www.schema.org/author": "Albert Camus",
   "http://www.schema.org/url": {"@id": "http://amazon.com/Myth-Sisyphus-Albert-Camus/dp/7500133340/"}, ← The '@id' keyword means 'This value is an identifier that is an IRI (URL)'
   "http://www.schema.org/image": {"@id": "http://ecx.images-amazon.com/images/I/61hJVrZgBBL.jpg"} ← The '@id' keyword means 'This value is an identifier that is an IRI (URL)'
@@ -99,15 +97,15 @@ and:
 {
   "http://www.schema.org/author": "Albert Camus",
   "http://www.schema.org/name": "Myth of Sisyphus",
-  "http://www.schema.org/image": "myth.png"
+  "http://www.schema.org/image": "myth.png",
   "http://www.schema.org/contentLocation": "3rd Floor, Manning Library",
   "http://www.schema.org/inLanguage": "en-US"
 }
 ```
 
-Our ambiguity is cleared up nicely. The `@id` term tells us that `image` is a URL in one case, but not in the other. And using a common schema, [schema.org's book schema](http://www.schema.org/Book) in this case, has brought together `name` and `title` as referring to the same thing, but the `location` values as referring to different things, a virtual location in one case and a physical location in the other.
+Our ambiguity is cleared up nicely by using JSON-LD documents. The `@id` term tells us that `image` is a URL in one case, but not in the other. Using a common schema, [schema.org's book schema](http://www.schema.org/Book) in this case, has brought together `name` and `title` as referring to the same thing, but the `location` values as referring to different things, a virtual location in one case and a physical location in the other.
 
-Who wants their JSON documents to look like this? A computer algorithm that's dealing with JSON documents from different sources does, but you don't want to read and write your JSON documents like this all the time. With JSON-LD we can move these semantics out of the JSON document and into a context.
+But who wants their JSON documents to look like this? A computer algorithm that's dealing with JSON documents from different sources does, but you don't want to read and write your JSON documents like this all the time. With JSON-LD we can move this metadata out of the JSON document and into a context.
 
 The contexts for the above JSON-LD documents look like this:
 
@@ -137,7 +135,7 @@ and:
     "title": "http://www.schema.org/name",  ← This means that 'title' is shorthand for 'http://schema.org/name' 
     "image": "http://schema.org/image", ← This means that 'image' is shorthand for 'http://schema.org/image', and is not an IRI (a URL)
     "location": "http://www.schema.org/contentLocation",  ← This means that 'location' is shorthand for 'http://schema.org/contentLocation', and is not an IRI (a URL)
-    "lang": "http://www.schema.org/inLanguage",  ← This means that 'lang' is shorthand for 'http://schema.org/inLanguage' 
+    "lang": "http://www.schema.org/inLanguage"  ← This means that 'lang' is shorthand for 'http://schema.org/inLanguage' 
   }
 }
 ```
@@ -161,11 +159,11 @@ Or the context can be directly embedded:
 ```json
 {
   "@context": {
-    "author": "http://www.schema.org/author",  ← This means that 'author' is shorthand for 'http://schema.org/author' 
-    "title": "http://www.schema.org/name",  ← This means that 'title' is shorthand for 'http://schema.org/name' 
-    "image": "http://schema.org/image", ← This means that 'image' is shorthand for 'http://schema.org/image', and is not an IRI (a URL)
-    "location": "http://www.schema.org/contentLocation",  ← This means that 'location' is shorthand for 'http://schema.org/contentLocation', and is not an IRI (a URL)
-    "lang": "http://www.schema.org/inLanguage",  ← This means that 'lang' is shorthand for 'http://schema.org/inLanguage' 
+    "author": "http://www.schema.org/author", 
+    "title": "http://www.schema.org/name", 
+    "image": "http://schema.org/image",
+    "location": "http://www.schema.org/contentLocation",
+    "lang": "http://www.schema.org/inLanguage" 
   },
   "author": "Albert Camus",
   "title": "Myth of Sisyphus",
