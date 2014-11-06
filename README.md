@@ -15,7 +15,7 @@ The Clojure library for [JSON-LD](http://json-ld.org/) (JavaScript Object Notati
 * [Testing](#testing)
 * [Development and Contributing](#development-and-contributing)
   * [Branches](#branches)
-* [Acknowlegements](#acknowlegements)
+* [Acknowledgements](#acknowledgements)
 * [License](#license)
 
 ## Introduction
@@ -37,11 +37,11 @@ JSON-LD is a lightweight syntax to serialize Linked Data in [JSON](http://www.ie
 
 JSON-LD provides:
 
-* a universal identifer mechanism for JSON objects,
+* a universal identifier mechanism for JSON objects,
 * a way to disambiguate keys shared among different JSON documents,
 * a mechanism in which a value in a JSON object may refer to a JSON object on a different site on the Web,
 * the ability to annotate strings in JSON objects with their language,
-* a way to associate datatypes with string values such as dates and times,
+* a way to associate data types with string values such as dates and times,
 * and a facility to express one or more directed graphs, such as a social network, or a taxonomy, in a single document.
 
 The JSON-LD syntax is designed to not disturb already deployed systems running on JSON, but provide a smooth upgrade path from JSON to JSON-LD. Since the shape of such data varies wildly, JSON-LD features mechanisms to reshape documents into a deterministic structure which simplifies their processing.
@@ -193,7 +193,7 @@ Or maybe the JSON provider is not interested in providing JSON-LD in any form. I
 
 ### Capabilities of clj-json-ld
 
-A JSON-LD processor, like clj-json-ld, helps you transform your JSON-LD documents in between these different valid JSON-LD formats, some more explicit for semantic reasoning by algorithms, and others more readable and compact for humans and for transmission.
+A JSON-LD processor, like clj-json-ld, helps you transform your JSON-LD documents in between different valid JSON-LD formats, some more explicit for semantic reasoning by algorithms, and others more readable and compact for humans and for transmission.
 
 clj-json-ld can perform the [expansion](http://www.w3.org/TR/json-ld/#expanded-document-form), [compaction](http://www.w3.org/TR/json-ld/#compacted-document-form), and [flattening](http://www.w3.org/TR/json-ld/#flattened-document-form) operations defined in the [expansion](http://www.w3.org/TR/json-ld-api/#expansion-algorithm), [compaction](http://www.w3.org/TR/json-ld-api/#compaction-algorithm) and [flattening](http://www.w3.org/TR/json-ld-api/#flattening-algorithm) sections of the [processing specification](http://www.w3.org/TR/json-ld-api/).
 
@@ -233,7 +233,7 @@ More detailed usage instructions are in the API documentation.
 
 The [JSON-LD Test Suite](http://json-ld.org/test-suite/) is used to verify [JSON-LD Processor conformance](http://json-ld.org/test-suite/reports/). clj-json-ld uses the JSON-LD Test Suite, as well as some additional tests.
 
-To run the tests you need to clone the [JSON-LD tests GitHub repository](https://github.com/json-ld/tests) as a peer directiory to this repository:
+To run the tests you need to clone the [JSON-LD tests GitHub repository](https://github.com/json-ld/tests) as a peer directory to this repository:
 
 ```console
 git clone https://github.com/json-ld/tests json-ld-tests
