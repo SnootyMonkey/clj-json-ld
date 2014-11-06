@@ -31,7 +31,7 @@
         [lein-midje "3.1.3"] ; Example-based testing https://github.com/marick/lein-midje
         [lein-bikeshed "0.1.8"] ; Check for code smells https://github.com/dakrone/lein-bikeshed
         [lein-kibit "0.0.8"] ; Static code search for non-idiomatic code https://github.com/jonase/kibit
-        [jonase/eastwood "0.1.4"] ; Clojure linter https://github.com/jonase/eastwood
+        [jonase/eastwood "0.1.5"] ; Clojure linter https://github.com/jonase/eastwood
         [lein-checkall "0.1.1"] ; Runs bikeshed, kibit and eastwood https://github.com/itang/lein-checkall
         [lein-ancient "0.5.5"] ; Check for outdated dependencies https://github.com/xsc/lein-ancient
         [lein-spell "0.1.0"] ; Catch spelling mistakes in docs and docstrings https://github.com/cldwalker/lein-spell

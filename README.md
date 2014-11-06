@@ -3,7 +3,7 @@
 
 The Clojure library for [JSON-LD](http://json-ld.org/) (JavaScript Object Notation for Linking Data).
 
-"Data is messy and disconnected. JSON-LD organizes and connects it, creating a better Web."
+> "Data is messy and disconnected. JSON-LD organizes and connects it, creating a better Web."
 
 * [Introduction](#introduction)
   * [Benefits of Linked Data](#benefits-of-linked-data)
@@ -55,37 +55,41 @@ Developers who require any of the facilities listed above or need to serialize/d
 
 :memo: Need to update these sample JSON and JSON-LD documents. Just placeholders at the moment.
 
-Let's take a look at some very simple JSON about a web page that you might get back from an API:
+Let's take a look at some very simple JSON about a book that you might get back from an API:
 
 ```json
 {
-  "name": "Manu Sporny",
-  "location": "http://manu.sporny.org/",
-  "image": "http://manu.sporny.org/images/manu.png"
+  "name": "Myth of Sisyphus"
+  "author": "Albert Camus",
+  "location": "http://amazon.com/Myth-Sisyphus-Albert-Camus/dp/7500133340/",
+  "image": "http://ecx.images-amazon.com/images/I/61hJVrZgBBL.jpg"
 }
 ```
 
-A different API might provide this JSON about the very same web page:
+A different API might provide this JSON about the very same book:
 
 ```json
 {
-  "name": "Manu Sporny",
-  "location": "http://manu.sporny.org/",
-  "image": "http://manu.sporny.org/images/manu.png"
+  "author": "Albert Camus",
+  "title": "Myth of Sisyphus",
+  "image": "myth.png"
+  "location": "3rd Floor, Manning Bldg.",
+  "lang": "en-US"
 }
 ```
 
-As a human, it's easy to deduce what this is all about. We have the ...
+As a human, it's easy to deduce what this is all about. We have the title of the book, the author, and different locations and images of the book.
 
-As a computer algorithm however, this is as clear as mud. Is image the name of a file? A full URL? A relative URL? A base-64 encoded image? ...
+As a computer algorithm however, this is as clear as mud. Is `name` the same as `title`? Is `location` a place or a URL? Is `image` the name of a file? A full URL? A relative URL? A base-64 encoded image? What's `lang` mean?
 
-The same JSON documents converted to JSON-LD document removes much of this ambiguity:
+The same JSON documents converted to JSON-LD documents remove much of this ambiguity:
 
 ```json
 {
-  "http://schema.org/name": "Manu Sporny",
-  "http://schema.org/url": { "@id": "http://manu.sporny.org/" },  ← The '@id' keyword means 'This value is an identifier that is an IRI'
-  "http://schema.org/image": { "@id": "http://manu.sporny.org/images/manu.png" }
+  "http://www.schema.org/name": "Myth of Sisyphus"
+  "http://www.schema.org/author": "Albert Camus",
+  "http://www.schema.org/url": {"@id": "http://amazon.com/Myth-Sisyphus-Albert-Camus/dp/7500133340/"}, ← The '@id' keyword means 'This value is an identifier that is an IRI (URL)'
+  "http://www.schema.org/image": {"@id": "http://ecx.images-amazon.com/images/I/61hJVrZgBBL.jpg"} ← The '@id' keyword means 'This value is an identifier that is an IRI (URL)'
 }
 ```
 
@@ -93,28 +97,32 @@ and:
 
 ```json
 {
-  "http://schema.org/name": "Manu Sporny",
-  "http://schema.org/url": { "@id": "http://manu.sporny.org/" },  ← The '@id' keyword means 'This value is an identifier that is an IRI (a URL)'
-  "http://schema.org/image": { "@id": "http://manu.sporny.org/images/manu.png" }
+  "http://www.schema.org/author": "Albert Camus",
+  "http://www.schema.org/name": "Myth of Sisyphus",
+  "http://www.schema.org/image": "myth.png"
+  "http://www.schema.org/contentLocation": "3rd Floor, Manning Library",
+  "http://www.schema.org/inLanguage": "en-US"
 }
 ```
 
-But who wants their JSON documents to look like that? A computer algorithm that's dealing with JSON documents from different sources does, as it removes ambiguity, but you don't want to read and write your JSON documents like that all the time. JSON-LD allows you to move these semantics out of the JSON document and into a context.
+Our ambiguity is cleared up nicely. The `@id` term tells us that `image` is a URL in one case, but not in the other. And using a common schema, [schema.org's book schema](http://www.schema.org/Book) in this case, has brought together `name` and `title` as referring to the same thing, but the `location` values as referring to different things, a virtual location in one case and a physical location in the other.
 
-The context for the above JSON-LD looks like this:
+Who wants their JSON documents to look like this? A computer algorithm that's dealing with JSON documents from different sources does, but you don't want to read and write your JSON documents like this all the time. With JSON-LD we can move these semantics out of the JSON document and into a context.
+
+The contexts for the above JSON-LD documents look like this:
 
 ```json
 {
-  "@context":
-  {
+  "@context": {
     "name": "http://schema.org/name",  ← This means that 'name' is shorthand for 'http://schema.org/name' 
+    "author": "http://www.schema.org/author",  ← This means that 'author' is shorthand for 'http://schema.org/author' 
+    "location": {
+      "@id": "http://schema.org/url",  ← This means that 'location' is shorthand for 'http://schema.org/url' 
+      "@type": "@id"  ← This means that a string value associated with 'location' should be interpreted as an identifier that is an IRI (a URL)
+    },
     "image": {
       "@id": "http://schema.org/image",  ← This means that 'image' is shorthand for 'http://schema.org/image' 
       "@type": "@id"  ← This means that a string value associated with 'image' should be interpreted as an identifier that is an IRI (a URL)
-    },
-    "homepage": {
-      "@id": "http://schema.org/url",  ← This means that 'homepage' is shorthand for 'http://schema.org/url' 
-      "@type": "@id"  ← This means that a string value associated with 'homepage' should be interpreted as an identifier that is an IRI (a URL)
     }
   }
 }
@@ -124,31 +132,27 @@ and:
 
 ```json
 {
-  "@context":
-  {
-    "name": "http://schema.org/name",  ← This means that 'name' is shorthand for 'http://schema.org/name' 
-    "image": {
-      "@id": "http://schema.org/image",  ← This means that 'image' is shorthand for 'http://schema.org/image' 
-      "@type": "@id"  ← This means that a string value associated with 'image' should be interpreted as an identifier that is an IRI (a URL)
-    },
-    "homepage": {
-      "@id": "http://schema.org/url",  ← This means that 'homepage' is shorthand for 'http://schema.org/url' 
-      "@type": "@id"  ← This means that a string value associated with 'homepage' should be interpreted as an identifier that is an IRI (a URL)
-    }
+  "@context": {
+    "author": "http://www.schema.org/author",  ← This means that 'author' is shorthand for 'http://schema.org/author' 
+    "title": "http://www.schema.org/name",  ← This means that 'title' is shorthand for 'http://schema.org/name' 
+    "image": "http://schema.org/image", ← This means that 'image' is shorthand for 'http://schema.org/image', and is not an IRI (a URL)
+    "location": "http://www.schema.org/contentLocation",  ← This means that 'location' is shorthand for 'http://schema.org/contentLocation', and is not an IRI (a URL)
+    "lang": "http://www.schema.org/inLanguage",  ← This means that 'lang' is shorthand for 'http://schema.org/inLanguage' 
   }
 }
 ```
 
-If that context is then embedded in its own section of the JSON-LD document, or placed in an accessible location online, say at `http://json-ld.org/contexts/person.jsonld`, then the original simpler JSON can be used, but with the semantic ambiguity removed. This is achieved with the addition of a `@context` property to make it a JSON-LD document.
+If that context is then embedded in its own section of the JSON-LD document, or placed in an accessible location online, say at `http://the-site.org/contexts/book.jsonld`, then the original simpler JSON can be used, but with the semantic ambiguity removed. This is achieved with the addition of a `@context` property to make it a JSON-LD document.
 
 The context can be included by reference:
 
 ```json
 {
-  "@context": "http://json-ld.org/contexts/person.jsonld",
-  "name": "Manu Sporny",
-  "homepage": "http://manu.sporny.org/",
-  "image": "http://manu.sporny.org/images/manu.png"
+  "@context": "http://the-site.org/contexts/book.jsonld",
+  "name": "Myth of Sisyphus"
+  "author": "Albert Camus",
+  "location": "http://amazon.com/Myth-Sisyphus-Albert-Camus/dp/7500133340/",
+  "image": "http://ecx.images-amazon.com/images/I/61hJVrZgBBL.jpg"
 }
 ```
 
@@ -156,21 +160,18 @@ Or the context can be directly embedded:
 
 ```json
 {
-  "@context":
-  {
-    "name": "http://schema.org/name",
-    "image": {
-      "@id": "http://schema.org/image",
-      "@type": "@id"
-    },
-    "homepage": {
-      "@id": "http://schema.org/url",
-      "@type": "@id"
-    }
+  "@context": {
+    "author": "http://www.schema.org/author",  ← This means that 'author' is shorthand for 'http://schema.org/author' 
+    "title": "http://www.schema.org/name",  ← This means that 'title' is shorthand for 'http://schema.org/name' 
+    "image": "http://schema.org/image", ← This means that 'image' is shorthand for 'http://schema.org/image', and is not an IRI (a URL)
+    "location": "http://www.schema.org/contentLocation",  ← This means that 'location' is shorthand for 'http://schema.org/contentLocation', and is not an IRI (a URL)
+    "lang": "http://www.schema.org/inLanguage",  ← This means that 'lang' is shorthand for 'http://schema.org/inLanguage' 
   },
-  "name": "Manu Sporny",
-  "homepage": "http://manu.sporny.org/",
-  "image": "http://manu.sporny.org/images/manu.png"
+  "author": "Albert Camus",
+  "title": "Myth of Sisyphus",
+  "image": "myth.png"
+  "location": "3rd Floor, Manning Bldg.",
+  "lang": "en-US"
 }
 ```
 
@@ -179,23 +180,26 @@ Or the context can be left out completely and provided by an HTTP Link Header:
 ```
 HTTP/1.1 200 OK
 Content-Type: application/json
-Link: <http://json-ld.org/contexts/person.jsonld>; rel="http://www.w3.org/ns/json-ld#context"; type="application/ld+json"
+Link: <http://the-site.org/contexts/book.jsonld>; rel="http://www.w3.org/ns/json-ld#context"; type="application/ld+json"
 
 {
-  "name": "Manu Sporny",
-  "location": "http://manu.sporny.org/",
-  "image": "http://manu.sporny.org/images/manu.png"
+  "name": "Myth of Sisyphus"
+  "author": "Albert Camus",
+  "location": "http://amazon.com/Myth-Sisyphus-Albert-Camus/dp/7500133340/",
+  "image": "http://ecx.images-amazon.com/images/I/61hJVrZgBBL.jpg"
 }
 ```
 
-A JSON-LD processor, like clj-json-ld, helps you transform your JSON-LD documents in between these different valid JSON-LD formats, some more explicit for semantic reasoning by algorithms, and others more readable and compact for humans and for transmission.
-
-:memo: Show the document expanded, compacted and flattened.
+Or maybe the JSON provider is not interested in providing JSON-LD in any form. In that case, we can create the context for the JSON data ourselves and provide it directly to the JSON-LD processor.
 
 
 ### Capabilities of clj-json-ld
 
+A JSON-LD processor, like clj-json-ld, helps you transform your JSON-LD documents in between these different valid JSON-LD formats, some more explicit for semantic reasoning by algorithms, and others more readable and compact for humans and for transmission.
+
 clj-json-ld can perform the [expansion](http://www.w3.org/TR/json-ld/#expanded-document-form), [compaction](http://www.w3.org/TR/json-ld/#compacted-document-form), and [flattening](http://www.w3.org/TR/json-ld/#flattened-document-form) operations defined in the [expansion](http://www.w3.org/TR/json-ld-api/#expansion-algorithm), [compaction](http://www.w3.org/TR/json-ld-api/#compaction-algorithm) and [flattening](http://www.w3.org/TR/json-ld-api/#flattening-algorithm) sections of the [processing specification](http://www.w3.org/TR/json-ld-api/).
+
+:memo: Show the document expanded, compacted and flattened.
 
 
 ## Installation
@@ -272,9 +276,9 @@ Additional short lived feature branches will come and go.
 
 Thank you to the creators of the [JSON-LD 1.0 W3C Recommendation](http://www.w3.org/TR/json-ld/) for their hard work in creating the specification and the comprehensive test suite. Thank you to the authors and editors for the very clear spec writing.
 
-The Benefits section of this README document is lifted with only very slight modifications from the [JSON-LD 1.0 W3C Recommendation](http://www.w3.org/TR/json-ld/).
+Portions of the [Benefits of Linked Data](#benefits-of-linked-data) and [Benefits of JSON-LD](#benefits-of-json-ld) sections of this README document are lifted with slight modifications from the [JSON-LD 1.0 W3C Recommendation](http://www.w3.org/TR/json-ld/).
 
-Thank you to [Gregg Kellog](https://github.com/gkellogg), author of the [json-ld Ruby processor](https://github.com/ruby-rdf/json-ld/), and [Dave Longley](https://github.com/dlongley), author of the [pyld Python processor](https://github.com/digitalbazaar/pyld), for providing prior implementations that were useful to study, particularly in the area of testing ideas.
+Thank you to [Gregg Kellog](https://github.com/gkellogg), author of the [json-ld Ruby processor](https://github.com/ruby-rdf/json-ld/), and [Dave Longley](https://github.com/dlongley), author of the [pyld Python processor](https://github.com/digitalbazaar/pyld), for providing prior implementations that were useful to study, particularly in the area of testing.
 
 
 ## License
