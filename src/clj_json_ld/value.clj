@@ -9,6 +9,14 @@
   (:require [defun :refer (defun-)]
             [clj-json-ld.iri :refer (expand-iri)]))
 
+(defn- property-type-mapping 
+  "If active property has a type mapping in active context, return it if it's not @id."
+  [active-context active-property]
+  (let [type-mapping (get-in active-context [active-property "@type"])]
+    (if (= type-mapping "@id")
+      nil
+      type-mapping)))
+
 (defn- value-is-an-iri?
   "Check the active context for a type mapping for the active property, and return true
   if the type is an IRI, and false if it is not."
@@ -45,7 +53,7 @@
   passed value. Additionally, an @type member will be included if there is a type mapping
   associated with the active property or an @language member if value is a string and there
   is language mapping associated with the active property.
-  
+
   **active-context** - context map used to resolve terms
   
   **active-property** - the property whose value is being expanded
@@ -53,8 +61,18 @@
   **value** - value to be expanded
   "
   [active-context active-property value]
-    (expand-it {:active-context active-context :active-property active-property :value value}))
-    ;; 4) If active property has a type mapping in active context, add an @type member to result and set its value to the value associated with the type mapping.
-    ;; 5) Otherwise, if value is a string:
-      ;;If a language mapping is associated with active property in active context, add an @language to result and set its value to the language code associated with the language mapping; unless the language mapping is set to null in which case no member is added.
-      ;;Otherwise, if the active context has a default language, add an @language to result and set its value to the default language.
+    (let [partially-expanded-value (expand-it {:active-context active-context
+                                               :active-property active-property
+                                               :value value})
+          type-mapping (property-type-mapping active-context active-property)]
+      (if type-mapping 
+        ;; 4) If active property has a type mapping in active context [and it's not @id],
+        ;; add an @type member to result and set its value to the value associated with the
+        ;; type mapping.
+        (assoc partially-expanded-value "@type" type-mapping)
+        ;; 5) Otherwise, if value is a string:
+        ;;If a language mapping is associated with active property in active context, add an @language to result and set its value to the language code associated with the language mapping; unless the language mapping is set to null in which case no member is added.
+        ;;Otherwise, if the active context has a default language, add an @language to result and set its value to the default language.
+        partially-expanded-value)))
+    
+    
