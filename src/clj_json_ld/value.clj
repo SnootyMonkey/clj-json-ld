@@ -13,9 +13,7 @@
   "If active property has a type mapping in active context, return it if it's not @id."
   [active-context active-property]
   (let [type-mapping (get-in active-context [active-property "@type"])]
-    (if (= type-mapping "@id")
-      nil
-      type-mapping)))
+    (if (= type-mapping "@id") nil type-mapping)))
 
 (defn- value-is-an-iri?
   "Check the active context for a type mapping for the active property, and return true
@@ -23,8 +21,23 @@
   [args]
     (= (get-in (:active-context args) [(:active-property args) "@type"]) "@id"))
 
-(defun- expand-it 
+(defun- language-mapping
+  ;;  If a language mapping is associated with active property in active context, add
+  ;;  an @language to result and set its value to the language code associated with the
+  ;;  language mapping; unless the language mapping is set to null in which case no member
+  ;;  is added.
+  ([args :guard #(get-in % [:active-context (get % :active-property) "@language"])]
+    (assoc (:value-map args) "@language" (get-in args [:active-context (get args :active-property) "@language"])))
 
+  ;; Otherwise, if the active context has a default language, add an @language
+  ;;  to result and set its value to the default language.
+  ([args :guard #(get-in % [:active-context "@language"])]
+    (assoc (:value-map args) "@language" (get-in args [:active-context "@language"])))
+
+  ;; Otherwise, there is no language mapping for you! Good luck guessing the language sucker!
+  ([args] (:value-map args)))
+
+(defun- expand-it 
   ;; 1) If the active property has a type mapping in active context that is @id,
   ;; return a new JSON object containing a single key-value pair where the key is @id
   ;; and the value is the result of using the IRI Expansion algorithm, passing active
@@ -36,7 +49,6 @@
   
   ;; 3) Otherwise, initialize result to a JSON object with an @value member whose value is set to value.
   ([args] {"@value" (:value args)}))
-
 
 (defn expand-value
   "
@@ -61,18 +73,24 @@
   **value** - value to be expanded
   "
   [active-context active-property value]
+    ;; Pairtially expand the value and get its type mapping
     (let [partially-expanded-value (expand-it {:active-context active-context
                                                :active-property active-property
                                                :value value})
           type-mapping (property-type-mapping active-context active-property)]
+      
+      ;; 4) If active property has a type mapping in active context [and it's not @id],
+      ;; add an @type member to result and set its value to the value associated with the
+      ;; type mapping.
       (if type-mapping 
-        ;; 4) If active property has a type mapping in active context [and it's not @id],
-        ;; add an @type member to result and set its value to the value associated with the
-        ;; type mapping.
         (assoc partially-expanded-value "@type" type-mapping)
-        ;; 5) Otherwise, if value is a string:
-        ;;If a language mapping is associated with active property in active context, add an @language to result and set its value to the language code associated with the language mapping; unless the language mapping is set to null in which case no member is added.
-        ;;Otherwise, if the active context has a default language, add an @language to result and set its value to the default language.
-        partially-expanded-value)))
-    
-    
+
+        ;; 5) Otherwise, if there is an @value, and it's a string, add the (optional)
+        ;; language mapping
+        (let [value (get partially-expanded-value "@value")]
+          (if (and value (string? value))
+            ;; Add the (optional) language mapping
+            (language-mapping {:active-context active-context
+                               :active-property active-property
+                               :value-map partially-expanded-value})
+            partially-expanded-value))))) ; Non-strings and @id's don't get language mappings
