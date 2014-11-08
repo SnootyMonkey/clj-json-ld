@@ -1,6 +1,6 @@
 (ns clj-json-ld.context
   "
-  Implement context processing as defined in the
+  Implement the context processing as defined in the
   [Context Processing Algorithms section](http://www.w3.org/TR/json-ld-api/#context-processing-algorithm).
   "
   (:require [defun :refer (defun)]))
