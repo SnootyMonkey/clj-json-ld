@@ -7,17 +7,20 @@
             [clojure.core.match :refer (match)]
             [clj-json-ld.iri :refer (absolute?)]))
 
+;; 3.4) If context has an @base key and remote contexts is empty,
+;; i.e., the currently being processed context is not a remote context: 
 (defun- process-base-key 
 
-  ;; 3.4) If context has an @base key and remote contexts is empty,
-  ;; i.e., the currently being processed context is not a remote context: 
-
+  ; currently being processed context IS a remote context, so do nothing
   ([result context remote-contexts :guard #(not (empty? %))]
-    result) ; currently being processed context IS a remote context, so do nothing
+    result) 
 
+  ; currently being processed context has a @base key
   ([result context :guard #(contains? % "@base") remote-contexts]
+    
     ;; 3.4.1) Initialize value to the value associated with the @base key.
     (let [value (get context "@base")]
+      
       (match [value]
         
         ;; 3.4.2) If value is null, remove the base IRI of result.
@@ -33,8 +36,9 @@
         ;; 3.4.5) Otherwise, an invalid base IRI error has been detected and processing is aborted.
         [_] result)))
 
+  ; context has no @base key, so do nothing
   ([result context remote-contexts]
-    result)) ; context has no @base key, so do nothing
+    result))
 
 ;; 3.5) If context has an @vocab key: 
 (defn- process-vocab-key [result context]
@@ -44,11 +48,15 @@
 (defn- process-language-key [result context]
   result)
 
-(defn- process-local-context [active-context context remote-contexts]
-  ;; 3.4) If context has an @base key and remote contexts is empty, i.e., the currently being processed context is not a remote context: 
-  ;; 3.5) If context has an @vocab key: 
-  ;; 3.6) If context has an @language key: 
-  (-> active-context (process-base-key context remote-contexts) (process-vocab-key context) (process-language-key context)))
+;; 3.4, 3.5, and 3.6) If context IS a JSON object, process the context.
+(defn- process-local-context [result context remote-contexts]
+  (-> result
+    ;; 3.4) If context has an @base key and remote contexts is empty, i.e., the currently being processed context is not a remote context: 
+    (process-base-key context remote-contexts)
+    ;; 3.5) If context has an @vocab key: 
+    (process-vocab-key context)
+    ;; 3.6) If context has an @language key: 
+    (process-language-key context)))
 
 (defun update-with-local-context 
   "Update an active context with a local context."
@@ -69,35 +77,37 @@
   ;; The next two patterns provide the recursion for:
   ;; 3) For each item context in local context
 
+  ;; stop condition of the recursion; return the accumulated result of merging with the local
+  ;; context(s) as the new active context
   ([result active-context local-context :guard #(empty? %) remote-contexts]
-    result) ; return the accumulated result of merging with the local context(s) as the new active context
+    result)
 
   ([result active-context local-context remote-contexts]
     (let [context (first local-context)]
       (match [context]
 
+        ;; 3.1) If context is null, set result to a newly-initialized active context and continue
+        ;; with the next context. The base IRI of the active context is set to the IRI of the
+        ;; currently being processed document (which might be different from the currently being
+        ;; processed context), if available; otherwise to null. If set, the base option of a JSON-LD
+        ;; API Implementation overrides the base IRI.
         [nil] 
-          ;; 3.1) If context is null, set result to a newly-initialized active context and continue
-          ;; with the next context. The base IRI of the active context is set to the IRI of the
-          ;; currently being processed document (which might be different from the currently being
-          ;; processed context), if available; otherwise to null. If set, the base option of a JSON-LD
-          ;; API Implementation overrides the base IRI.
           (recur {} active-context (rest local-context) remote-contexts)
 
+        ;; 3.2) If context is a string, it's a remote context, retrieve it, parse it and recurse.
         [string-context :guard #(string? %)]
-          ;; 3.2) If context is a string, it's a remote context, retrieve it, parse it and recurse
           (do (println "Remote Context! Do good things here.")
             (recur active-context (rest local-context) remote-contexts))
 
+        ;; TODO Use a real Java exception here, not ex-info
+        ;; 3.3) If context is NOT a JSON object, an invalid local context error has been detected and
+        ;; processing is aborted.
         [map-context :guard #(not (map? %))] 
-          ;; TODO Use a real Java exception here, not ex-info
-          ;; 3.3) If context is NOT a JSON object, an invalid local context error has been detected and
-          ;; processing is aborted.
           (throw (ex-info "JSONLDError" {:code "invalid local context"
             :message "local context is not a JSON object"}))
 
+        ;; 3.4, 3.5, and 3.6) If context IS a JSON object, process the context.
         [_] 
-          ;; 3.4, 3.5, and 3.6) If context IS a JSON object, process the context
           (recur (process-local-context result (first local-context) remote-contexts)
                  (rest local-context)
                  remote-contexts)))))
