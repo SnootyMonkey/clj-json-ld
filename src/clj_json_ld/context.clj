@@ -4,7 +4,8 @@
   [Context Processing Algorithms section](http://www.w3.org/TR/json-ld-api/#context-processing-algorithm).
   "
   (:require [defun :refer (defun defun-)]
-            [clojure.core.match :refer (match)]))
+            [clojure.core.match :refer (match)]
+            [clj-json-ld.iri :refer (absolute?)]))
 
 (defun- process-base-key 
 
@@ -17,14 +18,20 @@
   ([result context :guard #(contains? % "@base") remote-contexts]
     ;; 3.4.1) Initialize value to the value associated with the @base key.
     (let [value (get context "@base")]
-      (if (not value)
+      (match [value]
+        
         ;; 3.4.2) If value is null, remove the base IRI of result.
-        (dissoc result "@base")
-        ;; TODO!
+        [value :guard #(not %)] (dissoc result "@base")
+        
         ;; 3.4.3) Otherwise, if value is an absolute IRI, the base IRI of result is set to value.
-        ;; 3.4.4) Otherwise, if value is a relative IRI and the base IRI of result is not null, set the base IRI of result to the result of resolving value against the current base IRI of result.
+        [value :guard #(absolute? %)] (assoc result "@base" value)
+
+        ;; 3.4.4) Otherwise, if value is a relative IRI and the base IRI of result is not null,
+        ;; set the base IRI of result to the result of resolving value against the current base IRI
+        ;; of result.
+
         ;; 3.4.5) Otherwise, an invalid base IRI error has been detected and processing is aborted.
-        result)))
+        [_] result)))
 
   ([result context remote-contexts]
     result)) ; context has no @base key, so do nothing
@@ -79,7 +86,8 @@
 
         [string-context :guard #(string? %)]
           ;; 3.2) If context is a string, it's a remote context, retrieve it, parse it and recurse
-          (println "Remote Context! Do good things here.")
+          (do (println "Remote Context! Do good things here.")
+            (recur active-context (rest local-context) remote-contexts))
 
         [map-context :guard #(not (map? %))] 
           ;; TODO Use a real Java exception here, not ex-info
