@@ -28,12 +28,14 @@ Whoop-de-doo! Why should you care?
 
 ### Benefits of Linked Data
 
-[Linked Data](http://www.w3.org/DesignIssues/LinkedData.html) is a way to create a network of standards-based machine interpretable data across different documents and Web sites. It allows an application to start at one piece of Linked Data, and follow embedded links to other pieces of Linked Data that are hosted on different sites across the Web.
+[Linked Data](http://www.w3.org/DesignIssues/LinkedData.html) is a way to create a network of standards-based machine interpretable data across different documents, APIs and Web sites. It allows an application to start at one piece of Linked Data, and follow embedded links to other pieces of Linked Data that come from different sites and APIs across the Web.
 
 
 ### Benefits of JSON-LD
 
-JSON-LD is a lightweight syntax to serialize Linked Data in [JSON](http://www.ietf.org/rfc/rfc4627.txt). Its design allows existing JSON to be interpreted as Linked Data with minimal changes. JSON-LD is primarily intended to be a way to use Linked Data in Web-based programming environments, to build interoperable Web services, and to store Linked Data in JSON-based storage engines. Since JSON-LD is 100% compatible with JSON, the large number of JSON parsers and libraries available today can be reused. 
+JSON-LD is a lightweight syntax to serialize Linked Data in [JSON](http://www.ietf.org/rfc/rfc4627.txt). Its design allows existing JSON to be interpreted as Linked Data with minimal changes.
+
+JSON-LD is a way to use Linked Data in API programming environments, to build interoperable APIs, and to store Linked Data in JSON-based storage engines (most NoSQL databases). Since JSON-LD is 100% compatible with JSON, the large number of JSON parsers, libraries and databases available today can be reused. 
 
 JSON-LD provides:
 
@@ -44,9 +46,9 @@ JSON-LD provides:
 * a way to associate data types with string values such as dates and times,
 * and a facility to express one or more directed graphs, such as a social network, or a taxonomy, in a single document.
 
-The JSON-LD syntax is designed to not disturb already deployed systems running on JSON, but provide a smooth upgrade path from JSON to JSON-LD. Since the shape of such data varies wildly, JSON-LD features mechanisms to reshape documents into a deterministic structure which simplifies their processing.
+The JSON-LD syntax is designed to not disturb already deployed systems running on JSON, and provides a smooth upgrade path from JSON to JSON-LD. Since the shape of JSON data varies wildly, JSON-LD features mechanisms to reshape documents into a deterministic structure which simplifies their processing.
 
-JSON-LD is designed to be usable directly as JSON, with no knowledge of [RDF](http://www.w3.org/TR/2014/PR-rdf11-concepts-20140109/). It is an alternative syntax for the same underlying data model though, so it is also designed to be transformable to/from RDF, if desired, for use with other Linked Data technologies like SPARQL.
+JSON-LD is designed to be usable directly as JSON, with no knowledge of [RDF](http://www.w3.org/TR/2014/PR-rdf11-concepts-20140109/). It is an alternative syntax for the same underlying data model as RDF, so it is also designed to be transformable to/from RDF, if desired, for use with other Linked Data technologies like [SPARQL](http://www.w3.org/TR/rdf-sparql-query/).
 
 Developers who require any of the facilities listed above or need to serialize/deserialize an RDF Graph or RDF Dataset in a JSON-based syntax will find JSON-LD of interest.
 
