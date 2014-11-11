@@ -147,7 +147,7 @@ The context can be included by reference:
 ```json
 {
   "@context": "http://the-site.org/contexts/book.jsonld",
-  "name": "Myth of Sisyphus"
+  "name": "Myth of Sisyphus",
   "author": "Albert Camus",
   "location": "http://amazon.com/Myth-Sisyphus-Albert-Camus/dp/7500133340/",
   "image": "http://ecx.images-amazon.com/images/I/61hJVrZgBBL.jpg"
@@ -167,7 +167,7 @@ Or the context can be directly embedded:
   },
   "author": "Albert Camus",
   "title": "Myth of Sisyphus",
-  "image": "myth.png"
+  "image": "myth.png",
   "location": "3rd Floor, Manning Bldg.",
   "lang": "en-US"
 }
@@ -181,7 +181,7 @@ Content-Type: application/json
 Link: <http://the-site.org/contexts/book.jsonld>; rel="http://www.w3.org/ns/json-ld#context"; type="application/ld+json"
 
 {
-  "name": "Myth of Sisyphus"
+  "name": "Myth of Sisyphus",
   "author": "Albert Camus",
   "location": "http://amazon.com/Myth-Sisyphus-Albert-Camus/dp/7500133340/",
   "image": "http://ecx.images-amazon.com/images/I/61hJVrZgBBL.jpg"
