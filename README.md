@@ -35,7 +35,7 @@ Whoop-de-doo! Why should you care?
 
 JSON-LD is a lightweight syntax to serialize Linked Data in [JSON](http://www.ietf.org/rfc/rfc4627.txt). Its design allows existing JSON to be interpreted as Linked Data with minimal changes.
 
-JSON-LD is a way to use Linked Data in API programming environments, to build interoperable APIs, and to store Linked Data in JSON-based storage engines (most NoSQL databases). Since JSON-LD is 100% compatible with JSON, the large number of JSON parsers, libraries and databases available today can be reused. 
+JSON-LD is a way to use Linked Data in API programming environments, to build interoperable APIs, and to store Linked Data in JSON-based database engines (most NoSQL databases). Since JSON-LD is 100% compatible with JSON, the large number of JSON parsers, libraries and databases available today can be reused. 
 
 JSON-LD provides:
 

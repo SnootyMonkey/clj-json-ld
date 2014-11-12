@@ -8,6 +8,7 @@
 (def fcms-iri "http://falkland-cms.com/")
 (def falklandsophile-iri "http://falklandsophile.com/")
 (def snootymonkey-iri "http://snootymonkey.com")
+(def relative-iri "/foo/bar")
 
 (def active-context {"@base" fcms-iri "@foo" :bar})
 
@@ -44,12 +45,12 @@
         
   (facts "about @base in local contexts"
 
-    (fact "@base of nil removes the @base"
+    (facts "@base of nil removes the @base"
       (update-with-local-context active-context {"@base" nil}) => {"@foo" :bar}
       (update-with-local-context active-context {"@base2" nil}) => 
         active-context)
 
-    (fact "@base of an absolute IRI makes the IRI @base"
+    (facts "@base of an absolute IRI makes the IRI @base"
       
       (update-with-local-context 
         active-context 
@@ -74,7 +75,25 @@
       (update-with-local-context
         active-context
         [{"@base" falklandsophile-iri} {"@base" snootymonkey-iri} {} {"@base" nil} {"@base" fcms-iri}]) => 
-        active-context))
+        active-context)
+
+    (facts "@base of an relative IRI merges with the @base of the active-context"
+
+      (update-with-local-context active-context {"@base" "foo/bar"}) =>
+        {"@base" (str fcms-iri "foo/bar") "@foo" :bar}
+
+      (update-with-local-context active-context [{} {"@base" "foo/bar"} {}]) =>
+        {"@base" (str fcms-iri "foo/bar") "@foo" :bar}
+
+      ;; TODO wth? Email sent to the JSON-LD list on Nov. 12, 2014
+      (update-with-local-context active-context [{"@base" "foo/bar"} {"@base" "bloo/blat"}]) =>
+        {"@base" (str fcms-iri "foo/bar" "bloo/blat") "@foo" :bar})
+
+    (facts "@base of a relative IRI without an @base in the active-context is an invalid base IRI error"
+
+      (update-with-local-context {} {"@base" "foo/bar"}) => (throws clojure.lang.ExceptionInfo)
+
+      (update-with-local-context active-context [{"@base" nil} {"@base" "foo/bar"}]) => (throws clojure.lang.ExceptionInfo)))
 
   (future-facts "about @vocab in local contexts")
 
