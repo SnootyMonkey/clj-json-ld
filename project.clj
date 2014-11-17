@@ -17,6 +17,7 @@
     [org.clojure/core.match "0.2.2"] ; Erlang-esque pattern matching https://github.com/clojure/core.match
     [defun "0.2.0-RC"] ; Erlang-esque pattern matching for Clojure functions https://github.com/killme2008/defun
     [cheshire "5.3.1"] ; JSON de/encoding https://github.com/dakrone/cheshire
+    [clojurewerkz/urly "2.0.0-alpha5"] ; URI and URL parsing library https://github.com/michaelklishin/urly
   ]
 
   :profiles {
