@@ -115,10 +115,3 @@
 
 ;; http://www.w3.org/TR/json-ld-api/#iri-compaction
 ;; compact
-
-(defn absolute?
-  "Return true if the value is an absolute IRI, false if it is not."
-  [value]
-  (if (and (string? value)(re-matches #".+:\/\/.+" value))
-    true
-    false))

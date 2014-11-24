@@ -6,7 +6,7 @@
   "
   (:require [midje.sweet :refer :all]
             [clj-json-ld.json-ld :as json-ld]
-            [clj-json-ld.iri :refer (expand-iri absolute?)]))
+            [clj-json-ld.iri :refer (expand-iri)]))
 
 (def context {
   "@base" "http://base/"
@@ -18,42 +18,6 @@
 
 (def document-relative {:document-relative true})
 (def vocab {:vocab true})
-
-(facts "about absolute IRI determination"
-
-  (facts "with absolute IRIs"
-    (absolute? "http://foo") => true
-    (absolute? "http://foo.com") => true
-    (absolute? "http://foo.com/") => true
-    (absolute? "http://foo.com/index.html") => true
-    (absolute? "http://foo.com/foo/../bar/blat.html") => true
-    (absolute? "ftp://foo") => true
-    (absolute? "ftp://foo.com/index.html") => true
-    (absolute? "sneakernet://foo.com/index.html") => true
-    (absolute? "sneakernet://märz.eu/März/märz.pdf") => true)
-
-  (facts "with relative IRIs"
-    (absolute? "foo") => false
-    (absolute? "/foo") => false
-    (absolute? "/foo.pdf") => false
-    (absolute? "/foo/bar/blat.html") => false
-    (absolute? ".") => false
-    (absolute? "..") => false
-    (absolute? "../../blat.html") => false)
-
-  (facts "with nonsense"
-    (absolute? nil) => false
-    (absolute? 1) => false
-    (absolute? 1.1) => false
-    (absolute? {}) => false
-    (absolute? ()) => false
-    (absolute? []) => false
-    (absolute? "") => false
-    (absolute? "http") => false
-    (absolute? "httpfoo") => false
-    (absolute? "http:foo") => false
-    (absolute? "http:/foo") => false
-    (absolute? "http//foo") => false))
 
 (facts "about IRI expansion"
  

@@ -6,7 +6,7 @@
   (:require [defun :refer (defun defun-)]
             [clojure.core.match :refer (match)]
             [clojure.string :as s]
-            [clj-json-ld.iri :refer (absolute?)]))
+            [clojurewerkz.urly.core :refer (absolute?)]))
 
 ;; 3.4) If context has an @base key and remote contexts is empty,
 ;; i.e., the currently being processed context is not a remote context: 
