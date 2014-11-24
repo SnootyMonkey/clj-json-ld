@@ -3,7 +3,8 @@
   Test the context processing as defined here: http://www.w3.org/TR/json-ld-api/#context-processing-algorithm
   "
   (:require [midje.sweet :refer :all]
-            [clj-json-ld.context :refer (update-with-local-context)]))
+            [clj-json-ld.context :refer (update-with-local-context)]
+            [clojurewerkz.urly.core :as u]))
 
 (def fcms-iri "http://falkland-cms.com/")
 (def falklandsophile-iri "http://falklandsophile.com/")
@@ -85,9 +86,8 @@
       (update-with-local-context active-context [{} {"@base" "foo/bar"} {}]) =>
         {"@base" (str fcms-iri "foo/bar") "@foo" :bar}
 
-      ;; TODO wth? Email sent to the JSON-LD list on Nov. 12, 2014
       (update-with-local-context active-context [{"@base" "foo/bar"} {"@base" "bloo/blat"}]) =>
-        {"@base" (str fcms-iri "foo/bar" "bloo/blat") "@foo" :bar})
+        {"@base" (-> fcms-iri (u/resolve "foo/bar") (u/resolve "bloo/blat")) "@foo" :bar})
 
     (facts "@base of a relative IRI without an @base in the active-context is an invalid base IRI error"
 

@@ -6,7 +6,7 @@
   (:require [defun :refer (defun defun-)]
             [clojure.core.match :refer (match)]
             [clojure.string :as s]
-            [clojurewerkz.urly.core :refer (absolute?)]))
+            [clojurewerkz.urly.core :as u]))
 
 ;; 3.4) If context has an @base key and remote contexts is empty,
 ;; i.e., the currently being processed context is not a remote context: 
@@ -28,17 +28,13 @@
         [value :guard #(not %)] (dissoc result "@base")
         
         ;; 3.4.3) Otherwise, if value is an absolute IRI, the base IRI of result is set to value.
-        [value :guard #(absolute? %)] (assoc result "@base" value)
+        [value :guard #(u/absolute? %)] (assoc result "@base" value)
 
         ;; 3.4.4) Otherwise, if value is a relative IRI and the base IRI of result is not null,
         ;; set the base IRI of result to the result of resolving value against the current base IRI
         ;; of result.
-        ;; TODO how is a base and a relative IRI "resolved"? is string concatonation sufficient
-        ;; or is something more complicated needed to merge say a @base of "http://cnn.com/" with
-        ;; a relative IRI of "/foo/bar" to avoid "http://cnn.com//foo/bar"? Is "/foo/bar" even a valid
-        ;; relative IRI?
         [value :guard #(and (string? %) (not (s/blank? (get result "@base"))))]
-          (assoc result "@base" (str (get result "@base") value))
+          (assoc result "@base" (u/resolve (get result "@base") value))
 
         ;; 3.4.5) Otherwise, an invalid base IRI error has been detected and processing is aborted.
         [_] (throw (ex-info "JSONLDError" {:code "invalid base IRI"

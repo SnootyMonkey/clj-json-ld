@@ -9,7 +9,8 @@
   (:require [clojure.string :refer (blank? split join)]
             [defun :refer (defun-)]
             [clojure.core.match :refer (match)]
-            [clj-json-ld.json-ld :refer (json-ld-keyword?)]))
+            [clj-json-ld.json-ld :refer (json-ld-keyword?)]
+            [clojurewerkz.urly.core :as u]))
             
 ;; Internationalized Resource Identifier (IRI)
 ;; http://en.wikipedia.org/wiki/Internationalized_resource_identifier
@@ -76,7 +77,9 @@
   ; Scheme-Based Normalization are performed. Characters additionally allowed in IRI references are treated in the
   ; same way that unreserved characters are treated in URI references, per section 6.5 of [RFC3987].
   ([args :guard #(:document-relative (:options %))]
-    (str (get-in args [:active-context "@base"]) (:value args)))
+    (if-let [base (get-in args [:active-context "@base"])]
+      (u/resolve base (:value args))
+      (:value args)))
 
   ; 7) Return value as is.
   ([args] (:value args)))
