@@ -6,7 +6,7 @@
   "
   (:require [midje.sweet :refer :all]
             [clj-json-ld.json-ld :as json-ld]
-            [clj-json-ld.iri :refer (expand-iri)]))
+            [clj-json-ld.iri :refer (expand-iri blank-node-identifier?)]))
 
 (def context {
   "@base" "http://base/"
@@ -18,6 +18,19 @@
 
 (def document-relative {:document-relative true})
 (def vocab {:vocab true})
+
+(facts "about blank node identifiers"
+
+  (facts "we can detect them"
+    (blank-node-identifier? "_:") => true
+    (blank-node-identifier? "_:foo") => true)
+
+  (facts "we aren't fooled by fake ones"
+    (blank-node-identifier? "foo") => false
+    (blank-node-identifier? "-:") => false
+    (blank-node-identifier? "http://cnn.com/") => false
+    (blank-node-identifier? "http://cnn.com/foo_:") => false
+    (blank-node-identifier? "http_://cnn.com/foo") => false))
 
 (facts "about IRI expansion"
  

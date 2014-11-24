@@ -11,7 +11,11 @@
 (def snootymonkey-iri "http://snootymonkey.com")
 (def relative-iri "/foo/bar")
 
-(def active-context {"@base" fcms-iri "@foo" :bar})
+(def active-context {
+  "@base" fcms-iri
+  "@vocab" "http://vocab.com/"
+  "@foo" :bar
+})
 
 (facts "about updating active context with local contexts"
 
@@ -47,16 +51,14 @@
   (facts "about @base in local contexts"
 
     (facts "@base of nil removes the @base"
-      (update-with-local-context active-context {"@base" nil}) => {"@foo" :bar}
-      (update-with-local-context active-context {"@base2" nil}) => 
-        active-context)
+      (update-with-local-context active-context {"@base" nil}) => (dissoc active-context "@base")
+      (update-with-local-context active-context {"@base2" nil}) => active-context)
 
-    (facts "@base of an absolute IRI makes the IRI @base"
+    (facts "@base of an absolute IRI makes the IRI the @base"
       
       (update-with-local-context 
         active-context 
-        {"@base" falklandsophile-iri}) =>
-        {"@base" falklandsophile-iri "@foo" :bar}
+        {"@base" falklandsophile-iri}) => (assoc active-context "@base" falklandsophile-iri)
       
       (update-with-local-context
         active-context
@@ -65,13 +67,12 @@
 
       (update-with-local-context
         active-context
-        [{"@base" falklandsophile-iri} {}]) => 
-        {"@base" falklandsophile-iri "@foo" :bar}
+        [{"@base" falklandsophile-iri} {}]) => (assoc active-context "@base" falklandsophile-iri)
 
       (update-with-local-context
         active-context
-        [{"@base" falklandsophile-iri} {"@base" snootymonkey-iri} {}]) => 
-        {"@base" snootymonkey-iri "@foo" :bar}
+        [{"@base" falklandsophile-iri} {"@base" snootymonkey-iri} {}]) =>
+        (assoc active-context "@base" snootymonkey-iri)
 
       (update-with-local-context
         active-context
@@ -81,13 +82,13 @@
     (facts "@base of an relative IRI merges with the @base of the active-context"
 
       (update-with-local-context active-context {"@base" "foo/bar"}) =>
-        {"@base" (str fcms-iri "foo/bar") "@foo" :bar}
+        (assoc active-context "@base" (u/resolve fcms-iri "foo/bar"))
 
       (update-with-local-context active-context [{} {"@base" "foo/bar"} {}]) =>
-        {"@base" (str fcms-iri "foo/bar") "@foo" :bar}
+        (assoc active-context "@base" (u/resolve fcms-iri "foo/bar"))
 
       (update-with-local-context active-context [{"@base" "foo/bar"} {"@base" "bloo/blat"}]) =>
-        {"@base" (-> fcms-iri (u/resolve "foo/bar") (u/resolve "bloo/blat")) "@foo" :bar})
+        (assoc active-context "@base" (-> fcms-iri (u/resolve "foo/bar") (u/resolve "bloo/blat"))))
 
     (facts "@base of a relative IRI without an @base in the active-context is an invalid base IRI error"
 
@@ -95,6 +96,17 @@
 
       (update-with-local-context active-context [{"@base" nil} {"@base" "foo/bar"}]) => (throws clojure.lang.ExceptionInfo)))
 
-  (future-facts "about @vocab in local contexts")
+  (facts "about @vocab in local contexts"
+
+    (facts "@vocab of nil removes the @vocab"
+      (update-with-local-context active-context {"@vocab" nil}) => (dissoc active-context "@vocab")
+      (update-with-local-context active-context {"@vocab2" nil}) => 
+        active-context)
+
+    (future-facts "@vocab of an absolute IRI makes the IRI the @vocab")
+
+    (future-facts "@vocab of a blank node identifier makes the blank node identifier the @vocab")
+
+    (future-facts "@vocab of anything else is an invalid vocab mapping"))
 
   (future-facts "about @language in local contexts"))

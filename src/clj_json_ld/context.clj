@@ -6,7 +6,8 @@
   (:require [defun :refer (defun defun-)]
             [clojure.core.match :refer (match)]
             [clojure.string :as s]
-            [clojurewerkz.urly.core :as u]))
+            [clojurewerkz.urly.core :as u]
+            [clj-json-ld.iri :refer (blank-node-identifier?)]))
 
 ;; 3.4) If context has an @base key and remote contexts is empty,
 ;; i.e., the currently being processed context is not a remote context: 
@@ -41,12 +42,27 @@
             :message "local context @base has a relative IRI, and there is no absolute @base IRI in the active context"})))))
 
   ; context has no @base key, so do nothing
-  ([result context remote-contexts]
-    result))
+  ([result _ _] result))
 
 ;; 3.5) If context has an @vocab key: 
-(defn- process-vocab-key [result context]
-  result)
+(defun- process-vocab-key
+  ; currently being processed context has a @vocab key
+  ([result context :guard #(contains? % "@vocab")]
+    ;; 3.5.1) Initialize value to the value associated with the @vocab key.
+    (if-let [vocab (get context "@vocab")]
+      ;; 3.5.3) Otherwise, if value is an absolute IRI or blank node identifier,
+      ;; the vocabulary mapping of result is set to value. If it is not an absolute
+      ;; IRI or blank node identifier, an invalid vocab mapping error has been detected
+      ;; and processing is aborted.
+      (or (u/absolute? vocab) (blank-node-identifier? vocab)
+        (assoc result "@vocab" vocab)
+        (throw (ex-info "JSONLDError" {:code "invalid vocab mapping"
+              :message "local context @vocab but it's not an absolute IRI or a blank node identifier"})))
+      ;; 3.5.2) If value is null, remove any vocabulary mapping from result.
+      (dissoc result "@vocab")))
+  ; context has no @vocab key, so do nothing
+  ([result _] result))
+
 
 ;; 3.6) If context has an @language key: 
 (defn- process-language-key [result context]
