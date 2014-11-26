@@ -26,6 +26,8 @@
     (blank-node-identifier? "_:foo") => true)
 
   (facts "we aren't fooled by fake ones"
+    (blank-node-identifier? 42) => false
+    (blank-node-identifier? 3.14) => false
     (blank-node-identifier? "foo") => false
     (blank-node-identifier? "-:") => false
     (blank-node-identifier? "http://cnn.com/") => false

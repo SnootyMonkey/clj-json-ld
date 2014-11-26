@@ -6,16 +6,21 @@
             [clj-json-ld.context :refer (update-with-local-context)]
             [clojurewerkz.urly.core :as u]))
 
-(def fcms-iri "http://falkland-cms.com/")
-(def falklandsophile-iri "http://falklandsophile.com/")
-(def snootymonkey-iri "http://snootymonkey.com")
-(def relative-iri "/foo/bar")
-
 (def active-context {
   "@base" fcms-iri
   "@vocab" "http://vocab.com/"
   "@foo" :bar
 })
+
+(def fcms-iri "http://falkland-cms.com/")
+(def falklandsophile-iri "http://falklandsophile.com/")
+(def snootymonkey-iri "http://snootymonkey.com")
+(def relative-iri "/foo/bar")
+
+(def vocab-iri "http://vocab.org/")
+(def another-vocab-iri "http://vocab.net/")
+
+(def blank-node-identifier "_:foo")
 
 (facts "about updating active context with local contexts"
 
@@ -56,29 +61,16 @@
 
     (facts "@base of an absolute IRI makes the IRI the @base"
       
-      (update-with-local-context 
-        active-context 
-        {"@base" falklandsophile-iri}) => (assoc active-context "@base" falklandsophile-iri)
+      (doseq [local-context [
+                {"@base" falklandsophile-iri}     
+                [{} {"@base" falklandsophile-iri}]   
+                [{"@base" falklandsophile-iri} {}]
+                [{"@base" snootymonkey-iri} {"@base" falklandsophile-iri} {}]
+                [{"@base" snootymonkey-iri} {"@base" fcms-iri} {} {"@base" nil} {"@base" falklandsophile-iri}]
+              ]]
+        (update-with-local-context active-context local-context) =>
+          (assoc active-context "@base" falklandsophile-iri)))
       
-      (update-with-local-context
-        active-context
-        {"@base2" falklandsophile-iri}) => 
-        active-context
-
-      (update-with-local-context
-        active-context
-        [{"@base" falklandsophile-iri} {}]) => (assoc active-context "@base" falklandsophile-iri)
-
-      (update-with-local-context
-        active-context
-        [{"@base" falklandsophile-iri} {"@base" snootymonkey-iri} {}]) =>
-        (assoc active-context "@base" snootymonkey-iri)
-
-      (update-with-local-context
-        active-context
-        [{"@base" falklandsophile-iri} {"@base" snootymonkey-iri} {} {"@base" nil} {"@base" fcms-iri}]) => 
-        active-context)
-
     (facts "@base of an relative IRI merges with the @base of the active-context"
 
       (update-with-local-context active-context {"@base" "foo/bar"}) =>
@@ -92,9 +84,15 @@
 
     (facts "@base of a relative IRI without an @base in the active-context is an invalid base IRI error"
 
-      (update-with-local-context {} {"@base" "foo/bar"}) => (throws clojure.lang.ExceptionInfo)
-
-      (update-with-local-context active-context [{"@base" nil} {"@base" "foo/bar"}]) => (throws clojure.lang.ExceptionInfo)))
+      (doseq [local-context [
+                {"@base" 42}
+                {"@base" 3.14}
+                {"@base" "foo/bar"}
+                [{"@base" nil} {"@base" "foo/bar"}]
+                [{} {"@base" "foo/bar"}]
+                [{"@base" "foo/bar"} {"@base" falklandsophile-iri}]
+              ]]
+        (update-with-local-context {} local-context) => (throws clojure.lang.ExceptionInfo))))
 
   (facts "about @vocab in local contexts"
 
@@ -103,10 +101,40 @@
       (update-with-local-context active-context {"@vocab2" nil}) => 
         active-context)
 
-    (future-facts "@vocab of an absolute IRI makes the IRI the @vocab")
+    (facts "@vocab of an absolute IRI makes the IRI the @vocab"
 
-    (future-facts "@vocab of a blank node identifier makes the blank node identifier the @vocab")
+      (doseq [local-context [
+                {"@vocab" vocab-iri}
+                [{} {"@vocab" vocab-iri}]
+                [{"@vocab" vocab-iri} {}]
+                [{"@vocab" another-vocab-iri} {"@vocab" vocab-iri} {}]
+                [{"@vocab" another-vocab-iri} {} {"@vocab" nil} {"@vocab" vocab-iri}]
+              ]]
+        (update-with-local-context active-context local-context) =>
+          (assoc active-context "@vocab" vocab-iri)))
 
-    (future-facts "@vocab of anything else is an invalid vocab mapping"))
+    (facts "@vocab of a blank node identifier makes the blank node identifier the @vocab"
+      (doseq [local-context [
+                {"@vocab" blank-node-identifier}
+                [{} {"@vocab" blank-node-identifier}]
+                [{"@vocab" blank-node-identifier} {}]
+                [{"@vocab" another-vocab-iri} {"@vocab" vocab-iri} {"@vocab" blank-node-identifier} {}]
+                [{"@vocab" another-vocab-iri} {"@vocab" vocab-iri} {} {"@vocab" nil} {"@vocab" blank-node-identifier}]
+              ]]
+        (update-with-local-context active-context local-context) =>
+          (assoc active-context "@vocab" blank-node-identifier)))
+
+    (facts "@vocab of anything else is an invalid vocab mapping"
+
+      (doseq [local-context [
+                {"@vocab" 42}
+                {"@vocab" 3.14}
+                {"@vocab" "foo"}
+                {"@vocab" "foo/bar"}
+                [{"@vocab" nil} {"@vocab" "foo/bar"}]
+                [{} {"@vocab" "foo/bar"}]
+                [{"@base" vocab-iri} {"@vocab" "foo/bar"} {"@base" another-vocab-iri}]
+              ]]
+        (update-with-local-context {} local-context) => (throws clojure.lang.ExceptionInfo))))
 
   (future-facts "about @language in local contexts"))

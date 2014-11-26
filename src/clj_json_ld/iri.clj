@@ -120,7 +120,7 @@
   "A blank node identifier is a string that can be used as an identifier for a blank node within the scope of a
   JSON-LD document. Blank node identifiers begin with _:."
   [identifier]
-  (if (re-find #"^_:" identifier) true false))
+  (if (and (string? identifier) (re-find #"^_:" identifier)) true false))
 
 ;; http://www.w3.org/TR/json-ld-api/#iri-compaction
 ;; compact

@@ -29,7 +29,7 @@
         [value :guard #(not %)] (dissoc result "@base")
         
         ;; 3.4.3) Otherwise, if value is an absolute IRI, the base IRI of result is set to value.
-        [value :guard #(u/absolute? %)] (assoc result "@base" value)
+        [value :guard #(and (string? %) (u/absolute? %))] (assoc result "@base" value)
 
         ;; 3.4.4) Otherwise, if value is a relative IRI and the base IRI of result is not null,
         ;; set the base IRI of result to the result of resolving value against the current base IRI
@@ -54,7 +54,9 @@
       ;; the vocabulary mapping of result is set to value. If it is not an absolute
       ;; IRI or blank node identifier, an invalid vocab mapping error has been detected
       ;; and processing is aborted.
-      (or (u/absolute? vocab) (blank-node-identifier? vocab)
+      (if (and
+            (string? vocab)
+            (or (blank-node-identifier? vocab) (u/absolute? vocab)))
         (assoc result "@vocab" vocab)
         (throw (ex-info "JSONLDError" {:code "invalid vocab mapping"
               :message "local context @vocab but it's not an absolute IRI or a blank node identifier"})))
