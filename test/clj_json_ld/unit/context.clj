@@ -2,15 +2,10 @@
   "
   Test the context processing as defined here: http://www.w3.org/TR/json-ld-api/#context-processing-algorithm
   "
-  (:require [midje.sweet :refer :all]
+  (:require [clojure.string :as s]
+            [midje.sweet :refer :all]
             [clj-json-ld.context :refer (update-with-local-context)]
             [clojurewerkz.urly.core :as u]))
-
-(def active-context {
-  "@base" fcms-iri
-  "@vocab" "http://vocab.com/"
-  "@foo" :bar
-})
 
 (def fcms-iri "http://falkland-cms.com/")
 (def falklandsophile-iri "http://falklandsophile.com/")
@@ -20,7 +15,17 @@
 (def vocab-iri "http://vocab.org/")
 (def another-vocab-iri "http://vocab.net/")
 
+(def language "x-l337-5p34k")
+(def another-language "en-Kelper")
+
 (def blank-node-identifier "_:foo")
+
+(def active-context {
+  "@base" fcms-iri
+  "@vocab" "http://vocab.com/"
+  "@language" "x-pig-latin"
+  "@foo" :bar
+})
 
 (facts "about updating active context with local contexts"
 
@@ -87,6 +92,10 @@
       (doseq [local-context [
                 {"@base" 42}
                 {"@base" 3.14}
+                {"@base" []}
+                {"@base" {}}
+                {"@base" ()}
+                {"@base" #{}}
                 {"@base" "foo/bar"}
                 [{"@base" nil} {"@base" "foo/bar"}]
                 [{} {"@base" "foo/bar"}]
@@ -129,6 +138,10 @@
       (doseq [local-context [
                 {"@vocab" 42}
                 {"@vocab" 3.14}
+                {"@vocab" []}
+                {"@vocab" {}}
+                {"@vocab" ()}
+                {"@vocab" #{}}
                 {"@vocab" "foo"}
                 {"@vocab" "foo/bar"}
                 [{"@vocab" nil} {"@vocab" "foo/bar"}]
@@ -137,4 +150,37 @@
               ]]
         (update-with-local-context {} local-context) => (throws clojure.lang.ExceptionInfo))))
 
-  (future-facts "about @language in local contexts"))
+  (facts "about @language in local contexts"
+
+    (facts "@language of nil removes the @language"
+      (update-with-local-context active-context {"@language" nil}) => (dissoc active-context "@language")
+      (update-with-local-context active-context {"@language2" nil}) => 
+        active-context)
+
+    (facts "@language of any string makes the string the @language"
+
+      (doseq [local-context [
+                {"@language" language}
+                [{} {"@language" language}]
+                [{"@language" language} {}]
+                [{"@language" another-language} {"@language" language} {}]
+                [{"@language" another-language} {} {"@language" nil} {"@language" language}]
+              ]]
+        (update-with-local-context active-context local-context) =>
+          (assoc active-context "@language" language))
+
+      (fact "@language string is lower-cased to makes the @language"
+        (update-with-local-context active-context {"@language" another-language}) => 
+          (assoc active-context "@language" (s/lower-case another-language))))
+
+    (facts "@language of any non-string invalid default language"
+
+      (doseq [local-context [
+                {"@language" 42}
+                {"@language" 3.14}
+                {"@language" []}
+                {"@language" {}}
+                {"@language" ()}
+                {"@language" #{}}
+              ]]
+        (update-with-local-context {} local-context) => (throws clojure.lang.ExceptionInfo)))))

@@ -59,7 +59,7 @@
             (or (blank-node-identifier? vocab) (u/absolute? vocab)))
         (assoc result "@vocab" vocab)
         (throw (ex-info "JSONLDError" {:code "invalid vocab mapping"
-              :message "local context @vocab but it's not an absolute IRI or a blank node identifier"})))
+              :message "local context has @vocab but it's not an absolute IRI or a blank node identifier"})))
       ;; 3.5.2) If value is null, remove any vocabulary mapping from result.
       (dissoc result "@vocab")))
   ; context has no @vocab key, so do nothing
@@ -67,8 +67,22 @@
 
 
 ;; 3.6) If context has an @language key: 
-(defn- process-language-key [result context]
-  result)
+(defun- process-language-key
+  ; currently being processed context has a @language key
+  ([result context :guard #(contains? % "@language")]
+    ;; 3.6.1) Initialize value to the value associated with the @language key.
+    (if-let [language (get context "@language")]
+      ;; 3.6.3) Otherwise, if value is string, the default language of result is set to
+      ;; lowercased value. If it is not a string, an invalid default language error has
+      ;; been detected and processing is aborted.
+      (if (string? language)
+        (assoc result "@language" (s/lower-case language))
+        (throw (ex-info "JSONLDError" {:code "invalid default language"
+              :message "local context has @language but it's not a string"})))
+      ;; 3.6.2) If value is null, remove any language mapping from result.
+      (dissoc result "@language")))
+  ; context has no @language key, so do nothing
+  ([result _] result))
 
 ;; 3.4, 3.5, and 3.6) If context IS a JSON object, process the context.
 (defn- process-local-context [result context remote-contexts]
