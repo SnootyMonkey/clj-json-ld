@@ -7,7 +7,9 @@
             [clojure.core.match :refer (match)]
             [clojure.string :as s]
             [clojurewerkz.urly.core :as u]
-            [clj-json-ld.iri :refer (blank-node-identifier?)]))
+            [clj-json-ld.iri :refer (blank-node-identifier?)]
+            [clj-json-ld.term-definition :refer (create-term-definition)]
+            [clj-json-ld.json-ld-error :refer (json-ld-error)]))
 
 ;; 3.4) If context has an @base key and remote contexts is empty,
 ;; i.e., the currently being processed context is not a remote context: 
@@ -38,8 +40,8 @@
           (assoc result "@base" (u/resolve (get result "@base") value))
 
         ;; 3.4.5) Otherwise, an invalid base IRI error has been detected and processing is aborted.
-        [_] (throw (ex-info "JSONLDError" {:code "invalid base IRI"
-            :message "local context @base has a relative IRI, and there is no absolute @base IRI in the active context"})))))
+        [_] (json-ld-error "invalid base IRI"
+              "local context @base has a relative IRI, and there is no absolute @base IRI in the active context"))))
 
   ; context has no @base key, so do nothing
   ([result _ _] result))
@@ -58,8 +60,8 @@
             (string? vocab)
             (or (blank-node-identifier? vocab) (u/absolute? vocab)))
         (assoc result "@vocab" vocab)
-        (throw (ex-info "JSONLDError" {:code "invalid vocab mapping"
-              :message "local context has @vocab but it's not an absolute IRI or a blank node identifier"})))
+        (json-ld-error "invalid vocab mapping"
+          "local context has @vocab but it's not an absolute IRI or a blank node identifier"))
       ;; 3.5.2) If value is null, remove any vocabulary mapping from result.
       (dissoc result "@vocab")))
   ; context has no @vocab key, so do nothing
@@ -77,12 +79,39 @@
       ;; been detected and processing is aborted.
       (if (string? language)
         (assoc result "@language" (s/lower-case language))
-        (throw (ex-info "JSONLDError" {:code "invalid default language"
-              :message "local context has @language but it's not a string"})))
+        (json-ld-error "invalid default language"
+          "local context has @language but it's not a string"))
       ;; 3.6.2) If value is null, remove any language mapping from result.
       (dissoc result "@language")))
   ; context has no @language key, so do nothing
   ([result _] result))
+
+;; TODO better/easier than this way to filter keys?
+(defn- other-keys
+  "Return all the keys from a context that are NOT @base, @vocab and @language."
+  [context]
+  (->> (keys context)
+    (filter #(not (or (= "@base" %)(= "@vocab" %)(= "@language" %))))))
+
+(defun- process-other-keys 
+  "3.8) For each key-value pair in context where key is not @base, @vocab, 
+  or @language, invoke the Create Term Definition algorithm, passing result
+  for active context, context for local context, key, and defined."
+
+  ;; no more keys in the context to process, return the updated context
+  ([updated-result _ other-keys :guard empty? _]
+    updated-result)
+  
+  ;; process each key in the context
+  ([result context other-keys defined] 
+    ;; invoke the Create Term Definition algorithm, passing result for active
+    ;; context, context for local context, key, and defined.
+    (let [key (first other-keys)
+          [updated-result updated-defined] (create-term-definition result context key defined)]
+      (recur updated-result context (rest other-keys) updated-defined)))
+  
+  ;; get the initial set of other keys that we'll be processing and recurse
+  ([result context] (recur result context (other-keys context) {})))
 
 ;; 3.4, 3.5, and 3.6) If context IS a JSON object, process the context.
 (defn- process-local-context [result context remote-contexts]
@@ -92,7 +121,9 @@
     ;; 3.5) If context has an @vocab key: 
     (process-vocab-key context)
     ;; 3.6) If context has an @language key: 
-    (process-language-key context)))
+    (process-language-key context)
+    ;; 3.8)
+    (process-other-keys context)))
 
 (defun update-with-local-context 
   "Update an active context with a local context."
@@ -135,14 +166,11 @@
           (do (println "Remote Context! Do good things here.")
             (recur active-context (rest local-context) remote-contexts))
 
-        ;; TODO Use a real Java exception here, not ex-info
         ;; 3.3) If context is NOT a JSON object, an invalid local context error has been detected and
         ;; processing is aborted.
-        [map-context :guard #(not (map? %))] 
-          (throw (ex-info "JSONLDError" {:code "invalid local context"
-            :message "local context is not a JSON object"}))
-
-        ;; 3.4, 3.5, and 3.6) If context IS a JSON object, process the context.
+        [map-context :guard #(not (map? %))] (json-ld-error "invalid local context" "local context is not a JSON object")
+  
+        ;; 3.4, 3.5, 3.6, and 3.8) If context IS a JSON object, process the context.
         [_] 
           (recur (process-local-context result (first local-context) remote-contexts)
                  (rest local-context)
