@@ -4,6 +4,8 @@
             [clj-json-ld.json-ld-error :refer (json-ld-error)]))
 
 
+;; 14.1 recurses back into this algorithm
+
 (defn create-term-definition
   "
   Algorithm called from the Context Processing algorithm to create a term definition in the
@@ -20,6 +22,7 @@
       
       [true] [active-context defined] ; the term has already been created, so just return
       
+      ;; Next step, 2-18 happen here
       [defined-value :guard nil?] [active-context defined] ; temporary no-op
       
       ;; the term is in the process of being created, this is cyclical, oh noes!
