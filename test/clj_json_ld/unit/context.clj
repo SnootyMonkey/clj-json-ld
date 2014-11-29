@@ -4,6 +4,7 @@
   "
   (:require [clojure.string :as s]
             [midje.sweet :refer :all]
+            [clj-json-ld.json-ld :as json-ld]
             [clj-json-ld.context :refer (update-with-local-context)]
             [clojurewerkz.urly.core :as u]))
 
@@ -61,8 +62,7 @@
   (facts "about @base in local contexts"
 
     (facts "@base of nil removes the @base"
-      (update-with-local-context active-context {"@base" nil}) => (dissoc active-context "@base")
-      (update-with-local-context active-context {"@base2" nil}) => active-context)
+      (update-with-local-context active-context {"@base" nil}) => (dissoc active-context "@base"))
 
     (facts "@base of an absolute IRI makes the IRI the @base"
       
@@ -106,9 +106,7 @@
   (facts "about @vocab in local contexts"
 
     (facts "@vocab of nil removes the @vocab"
-      (update-with-local-context active-context {"@vocab" nil}) => (dissoc active-context "@vocab")
-      (update-with-local-context active-context {"@vocab2" nil}) => 
-        active-context)
+      (update-with-local-context active-context {"@vocab" nil}) => (dissoc active-context "@vocab"))
 
     (facts "@vocab of an absolute IRI makes the IRI the @vocab"
 
@@ -153,9 +151,7 @@
   (facts "about @language in local contexts"
 
     (facts "@language of nil removes the @language"
-      (update-with-local-context active-context {"@language" nil}) => (dissoc active-context "@language")
-      (update-with-local-context active-context {"@language2" nil}) => 
-        active-context)
+      (update-with-local-context active-context {"@language" nil}) => (dissoc active-context "@language"))
 
     (facts "@language of any string makes the string the @language"
 
@@ -183,4 +179,16 @@
                 {"@language" ()}
                 {"@language" #{}}
               ]]
-        (update-with-local-context {} local-context) => (throws clojure.lang.ExceptionInfo)))))
+        (update-with-local-context {} local-context) => (throws clojure.lang.ExceptionInfo))))
+  
+  (facts "about additional terms in local contexts"
+
+    (fact "a term defined as nil in the local context is nil in the active context"
+      (update-with-local-context active-context {"@bar" nil}) => (assoc active-context "@bar" nil)
+      (update-with-local-context active-context {"@bar" {"@id" nil "foo" "bar"}}) =>
+        (assoc active-context "@bar" nil))
+
+    (fact "a term in the local context that's a JSON-LD keyword is a keyword redefinition error"
+      (doseq [json-ld-keyword (disj json-ld/keywords "@base" "@vocab" "@language")]
+        (update-with-local-context active-context {json-ld-keyword "http://abs.com"}) =>
+          (throws clojure.lang.ExceptionInfo)))))
