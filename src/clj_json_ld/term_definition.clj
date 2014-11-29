@@ -20,15 +20,17 @@
   ;; (indicating that the term definition has already been created), return.
   ;; Otherwise, if the value is false, a cyclic IRI mapping error has been detected
   ;; and processing is aborted.
-  (let [defined-value (get defined term)]
-    (match [defined-value]
+  (let [defined-marker (get defined term)]
+    (match [defined-marker] ; true, false or nil
       
-      [true] [active-context defined] ; the term has already been created, so just return the result tuple
+      ; the term has already been created, so just return the result tuple
+      [true] [active-context defined]
       
+      ;; the term is in the process of being created, this is cyclical, oh noes!
       [false] (json-ld-error "cyclic IRI mapping"
             (str "local context has a term " term " that is used in its own definition"))
       
-      ;; The term is not defined, so proceed to steps (2-18)
+      ;; The term is not yet defined, so proceed to steps 2-18 of the algorithm
       [_] (do
 
         ;; 3) Since keywords cannot be overridden, the term must not be a keyword. Otherwise, a
@@ -62,7 +64,6 @@
       
       ;;18) Set the term definition of term in active context to definition and set the value
       ;; associated with defined's key term to true.      
-      ;; the term is in the process of being created, this is cyclical, oh noes!
       )
     )
   )
