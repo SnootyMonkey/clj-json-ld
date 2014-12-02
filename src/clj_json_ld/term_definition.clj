@@ -7,6 +7,50 @@
             [clj-json-ld.json-ld :as json-ld]
             [clj-json-ld.json-ld-error :refer (json-ld-error)]))
 
+(defn- handle-type [updated-context term value]
+  ;; 10) If value contains the key @type:
+  updated-context)
+
+(defn- handle-reverse [updated-context term value]
+  ;; 11) If value contains the key @reverse:
+  updated-context)
+
+(defn- handle-13-14-15 [updated-context term value]
+  ;; 13) If value contains the key @id and its value does not equal term:
+  ;; 14) Otherwise if the term contains a colon (:): 
+  ;; 15) Otherwise, if active context has a vocabulary mapping, the IRI mapping of definition is set to the result of concatenating the value associated with the vocabulary mapping and term. If it does not have a vocabulary mapping, an invalid IRI mapping error been detected and processing is aborted.
+  updated-context)
+
+(defn- handle-container [updated-context term value]
+  ;; 16) If value contains the key @container: 
+  updated-context)
+
+(defn- handle-language [updated-context term value]
+  ;; 17) If value contains the key @language and does not contain the key @type: 
+  updated-context)
+
+(defn- new-term-definition
+  "
+  9) Create a new term definition, definition.
+  "
+  [active-context local-context term defined]
+
+  (let [value (get local-context term)
+        updated-context 
+          (-> active-context
+            ;; 10) If value contains the key @type: 
+            (handle-type term value)
+            ;; 11) If value contains the key @reverse:
+            (handle-reverse term value)    
+            ;; 13) - 14) - 15)
+            (handle-13-14-15 term value)
+            ;; 16) If value contains the key @container: 
+            (handle-container term value)
+            ;; 17) If value contains the key @language and does not contain the key @type: 
+            (handle-language term value))]
+    ;; Return a tuple of the updated context and the defined map with the term marked as defined
+    [updated-context (assoc defined term true)]))
+
 (defn create-term-definition
   "
   6.2) Create Term Definition
@@ -44,18 +88,29 @@
         (let [updated-context (dissoc active-context term)
               value (get local-context term)]
 
-          ;; 6) If value is null or value is a JSON object containing the key-value pair @id-null, set
-          ;; the term definition in active context to null, set the value associated with defined's key
-          ;; term to true, and return.
-          (if (or (nil? value) (and (map? value) (= (get value "@id") nil)))
-            ; return the result tuple with the term as nil
-            [(assoc updated-context term nil) (assoc defined term true)]
+          (match [value]
+
+            ;; 6) If value is null or value is a JSON object containing the key-value pair @id-null, set
+            ;; the term definition in active context to null, set the value associated with defined's key
+            ;; term to true, and return.
+            [value :guard #(or (nil? %) (and (map? %) (= (get % "@id") nil)))]
+              ; return the result tuple with the term as nil
+              [(assoc updated-context term nil) (assoc defined term true)]
   
             ;; 7) Otherwise, if value is a string, convert it to a JSON object consisting of a
             ;; single member whose key is @id and whose value is value.
+            [value :guard string?] [(assoc updated-context term {"@id" value}) (assoc defined term true)]
 
-            ;; 8) Otherwise, value must be a JSON object, if not, an invalid term definition
+            ;; 8) Otherwise, value must be a JSON object...
+            [value :guard map?]
+              
+              ;; 9) Create a new term definition, definition.
+              [(new-term-definition active-context local-context term defined)]
+
+            ;; 8) ... if not, an invalid term definition
             ;; error has been detected and processing is aborted.
+            [value] (json-ld-error "invalid term definition" (str "The term " term " in the local context is not valid."))
+
           )
         )
       ;; 2) Set the value associated with defined's term key to false.

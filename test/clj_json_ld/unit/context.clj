@@ -55,7 +55,7 @@
     (fact "result in a newly-initialized active context"
       (update-with-local-context active-context nil) => {}
       (update-with-local-context active-context [nil]) => {}
-      (update-with-local-context active-context [{:blat :bloo} nil]) => {}))
+      (update-with-local-context active-context [{:blat "bloo"} nil]) => {}))
 
   (future-facts "about local contexts as remote strings")
         
@@ -191,4 +191,22 @@
     (fact "a term in the local context that's a JSON-LD keyword is a keyword redefinition error"
       (doseq [json-ld-keyword (disj json-ld/keywords "@base" "@vocab" "@language")]
         (update-with-local-context active-context {json-ld-keyword "http://abs.com"}) =>
-          (throws clojure.lang.ExceptionInfo)))))
+          (throws clojure.lang.ExceptionInfo)))
+
+    (fact "a term defined as a string in the local context is a JSON object with an @id in the active context"
+      (update-with-local-context active-context {"@foo" "bar"}) => (assoc active-context "@foo" {"@id" "bar"})
+      (update-with-local-context active-context {"@foo" "bar" "@blat" "bloo"}) =>
+        (assoc active-context "@foo" {"@id" "bar"} "@blat" {"@id" "bloo"}))
+
+    (facts "a term defined as anything but a string or JSON object is an invalid term definition"
+
+      (doseq [local-context [
+                {"@foo" 42}
+                {"@foo" 3.14}
+                {"@foo" []}
+                {"@foo" ()}
+                {"@foo" #{}}
+              ]]
+        (update-with-local-context active-context local-context) => (throws clojure.lang.ExceptionInfo)))
+  
+))
