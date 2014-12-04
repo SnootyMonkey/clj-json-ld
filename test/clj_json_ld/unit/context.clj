@@ -183,17 +183,17 @@
   
   (facts "about additional terms in local contexts"
 
-    (fact "a term defined as nil in the local context is nil in the active context"
+    (facts "a term defined as nil in the local context is nil in the active context"
       (update-with-local-context active-context {"@bar" nil}) => (assoc active-context "@bar" nil)
       (update-with-local-context active-context {"@bar" {"@id" nil "foo" "bar"}}) =>
         (assoc active-context "@bar" nil))
 
-    (fact "a term in the local context that's a JSON-LD keyword is a keyword redefinition error"
+    (facts "a term in the local context that's a JSON-LD keyword is a keyword redefinition error"
       (doseq [json-ld-keyword (disj json-ld/keywords "@base" "@vocab" "@language")]
         (update-with-local-context active-context {json-ld-keyword "http://abs.com"}) =>
           (throws clojure.lang.ExceptionInfo)))
 
-    (fact "a term defined as a string in the local context is a JSON object with an @id in the active context"
+    (facts "a term defined as a string in the local context is a JSON object with an @id in the active context"
       (update-with-local-context active-context {"@foo" "bar"}) => (assoc active-context "@foo" {"@id" "bar"})
       (update-with-local-context active-context {"@foo" "bar" "@blat" "bloo"}) =>
         (assoc active-context "@foo" {"@id" "bar"} "@blat" {"@id" "bloo"}))
@@ -209,4 +209,13 @@
               ]]
         (update-with-local-context active-context local-context) => (throws clojure.lang.ExceptionInfo)))
   
-))
+    (facts "a term defined with a valid type mapping adds the term and the type mapping to the active context"
+      (update-with-local-context active-context {"foo" {"@type" "@id"}}) => (assoc active-context "foo" {"@type" "@id"})
+      (update-with-local-context active-context {"foo" {"@type" "@vocab"}}) => (assoc active-context "foo" {"@type" "@vocab"})
+      (update-with-local-context active-context {"foo" {"@type" fcms-iri}}) => (assoc active-context "foo" {"@type" fcms-iri}))
+
+    (facts "a term defined with a valid type mapping adds the term and the type mapping to the active context"
+      ; TODO these cause absolute? to blow up... we should make our own absolute? that wraps urly's and protects it from blowing up
+      ; (update-with-local-context active-context {"foo" {"@type" "_:t0"}}) => (throws clojure.lang.ExceptionInfo)
+      ; (update-with-local-context active-context {"foo" {"@type" "@foo"}}) => (throws clojure.lang.ExceptionInfo)
+      (update-with-local-context active-context {"foo" {"@type" "@container"}}) => (throws clojure.lang.ExceptionInfo))))

@@ -4,16 +4,51 @@
   Term definitions are created by parsing the information in the given local context for the given term.
   "
   (:require [clojure.core.match :refer (match)]
+            [defun :refer (defun defun-)]
+            [clojurewerkz.urly.core :refer (absolute?)]
             [clj-json-ld.json-ld :as json-ld]
-            [clj-json-ld.json-ld-error :refer (json-ld-error)]))
+            [clj-json-ld.json-ld-error :refer (json-ld-error)]
+            [clj-json-ld.iri :refer (expand-iri)]))
 
-(defn- handle-type [updated-context term value]
+(defun- handle-type 
   ;; 10) If value contains the key @type:
-  updated-context)
+  ([updated-context term value :guard #(contains? % "@type") local-context defined]
 
-(defn- handle-reverse [updated-context term value]
+    ;; 10.1) Initialize type to the value associated with the @type key, which must be a string.
+    ;; Otherwise, an invalid type mapping error has been detected and processing is aborted.
+    (let [type (get value "@type")]
+      
+      (if-not (string? type)
+        (json-ld-error "invalid type mapping error" (str "@type of term " term " in the local context is not a string.")))
+      
+      ;; 10.2) Set type to the result of using the IRI Expansion algorithm, passing active context, type for value,
+      ;; true for vocab, false for document relative, local context, and defined....
+      ;; is aborted.
+      (let [expanded-type (expand-iri updated-context type {
+                            :vocab true
+                            :document-relative false
+                            :local-context local-context
+                            :defined defined})]
+        ;; ...If the expanded type is neither @id, nor @vocab, nor an absolute IRI, an invalid type mapping
+        ;; error has been detected and processing is aborted.
+        (if-not (or (contains? #{"@id" "@vocab"} expanded-type) (absolute? expanded-type))
+          (json-ld-error "invalid type mapping" (str "@type of term " term " in the local context is not valid.")))
+
+        ;; 10.3) Set the type mapping for definition to type.
+        (let [term-definition (or (get updated-context term) {})]
+          (assoc updated-context term (assoc term-definition "@type" expanded-type))))))
+
+  ; updated-context has no @type key, so do nothing
+  ([updated-context _ _ _ _] 
+    updated-context))
+
+(defun- handle-reverse
   ;; 11) If value contains the key @reverse:
-  updated-context)
+  ([updated-context term value :guard #(contains? % "@reverse")]
+    updated-context)
+
+  ; updated-context has no @reverse key, so do nothing
+  ([updated-context _ _] updated-context))
 
 (defn- handle-13-14-15 [updated-context term value]
   ;; 13) If value contains the key @id and its value does not equal term:
@@ -21,13 +56,21 @@
   ;; 15) Otherwise, if active context has a vocabulary mapping, the IRI mapping of definition is set to the result of concatenating the value associated with the vocabulary mapping and term. If it does not have a vocabulary mapping, an invalid IRI mapping error been detected and processing is aborted.
   updated-context)
 
-(defn- handle-container [updated-context term value]
+(defun- handle-container
   ;; 16) If value contains the key @container: 
-  updated-context)
+  ([updated-context term value :guard #(contains? % "@container")]
+    updated-context)
 
-(defn- handle-language [updated-context term value]
+  ; updated-context has no @container key, so do nothing
+  ([updated-context _ _] updated-context))
+
+(defun- handle-language
   ;; 17) If value contains the key @language and does not contain the key @type: 
-  updated-context)
+  ([updated-context term value :guard #(and (contains? % "@language") (not (contains? % "@type")))]
+    updated-context)
+
+  ; updated-context has no @language key, so do nothing
+  ([updated-context _ _] updated-context))
 
 (defn- new-term-definition
   "
@@ -39,7 +82,7 @@
         updated-context 
           (-> active-context
             ;; 10) If value contains the key @type: 
-            (handle-type term value)
+            (handle-type term value local-context defined)
             ;; 11) If value contains the key @reverse:
             (handle-reverse term value)    
             ;; 13) - 14) - 15)
@@ -93,7 +136,13 @@
             ;; 6) If value is null or value is a JSON object containing the key-value pair @id-null, set
             ;; the term definition in active context to null, set the value associated with defined's key
             ;; term to true, and return.
-            [value :guard #(or (nil? %) (and (map? %) (= (get % "@id") nil)))]
+            [value :guard #(or 
+                              (nil? %)
+                              (and
+                                (map? %)
+                                (and 
+                                  (contains? % "@id")
+                                  (= (get % "@id") nil))))]
               ; return the result tuple with the term as nil
               [(assoc updated-context term nil) (assoc defined term true)]
   
@@ -103,9 +152,8 @@
 
             ;; 8) Otherwise, value must be a JSON object...
             [value :guard map?]
-              
               ;; 9) Create a new term definition, definition.
-              [(new-term-definition active-context local-context term defined)]
+              (new-term-definition active-context local-context term defined)
 
             ;; 8) ... if not, an invalid term definition
             ;; error has been detected and processing is aborted.
