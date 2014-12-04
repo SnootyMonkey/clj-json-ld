@@ -136,6 +136,7 @@
             ;; 6) If value is null or value is a JSON object containing the key-value pair @id-null, set
             ;; the term definition in active context to null, set the value associated with defined's key
             ;; term to true, and return.
+            ;; TODO revisit and simplify this logic
             [value :guard #(or 
                               (nil? %)
                               (and
