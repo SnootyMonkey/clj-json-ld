@@ -2,7 +2,7 @@
 =====================
 
 [![MPL License](http://img.shields.io/badge/license-MPL-green.svg?style=flat)](https://www.mozilla.org/MPL/2.0/)
-[![Build Status](http://img.shields.io/travis/SnootyMonkey/clj-json-ld.png?style=flat)](https://travis-ci.org/SnootyMonkey/clj-json-ld)
+[![Build Status](http://img.shields.io/travis/SnootyMonkey/clj-json-ld.svg?style=flat)](https://travis-ci.org/SnootyMonkey/clj-json-ld)
 
 > "Data is messy and disconnected. JSON-LD organizes and connects it, creating a better Web."
 
@@ -236,7 +236,11 @@ More detailed usage instructions are in the API documentation.
 
 The [JSON-LD Test Suite](http://json-ld.org/test-suite/) is used to verify [JSON-LD Processor conformance](http://json-ld.org/test-suite/reports/). clj-json-ld uses the JSON-LD Test Suite, as well as some additional tests.
 
-To run the tests you need to clone the [JSON-LD tests GitHub repository](https://github.com/json-ld/tests) as a peer directory to this repository:
+Tests are run in continuous integration of the `master` and `dev` branches on [Travis CI](https://travis-ci.org/path/posthere.io):
+
+[![Build Status](http://img.shields.io/travis/SnootyMonkey/clj-json-ld.svg?style=flat)](https://travis-ci.org/SnootyMonkey/clj-json-ld)
+
+To run the tests locally, you need to clone the [JSON-LD tests GitHub repository](https://github.com/json-ld/tests) as a peer directory to this repository:
 
 ```console
 git clone https://github.com/json-ld/tests json-ld-tests
