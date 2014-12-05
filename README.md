@@ -1,5 +1,8 @@
---=  clj-json-ld  =--  [![Build Status](https://travis-ci.org/SnootyMonkey/clj-json-ld.png?branch=master)](https://travis-ci.org/SnootyMonkey/clj-json-ld)
+--=  clj-json-ld  =--
 =====================
+
+[![MPL License](http://img.shields.io/badge/license-MPL-green.svg?style=flat)](https://www.mozilla.org/MPL/2.0/)
+[![Build Status](http://img.shields.io/travis/SnootyMonkey/clj-json-ld.png?style=flat)](https://travis-ci.org/SnootyMonkey/clj-json-ld)
 
 The Clojure library for [JSON-LD](http://json-ld.org/) (JavaScript Object Notation for Linking Data).
 
