@@ -4,9 +4,9 @@
 [![MPL License](http://img.shields.io/badge/license-MPL-green.svg?style=flat)](https://www.mozilla.org/MPL/2.0/)
 [![Build Status](http://img.shields.io/travis/SnootyMonkey/clj-json-ld.png?style=flat)](https://travis-ci.org/SnootyMonkey/clj-json-ld)
 
-The Clojure library for [JSON-LD](http://json-ld.org/) (JavaScript Object Notation for Linking Data).
-
 > "Data is messy and disconnected. JSON-LD organizes and connects it, creating a better Web."
+
+clj-json-ld is the Clojure library for [JSON-LD](http://json-ld.org/) (JavaScript Object Notation for Linking Data).
 
 * [Introduction](#introduction)
   * [Benefits of Linked Data](#benefits-of-linked-data)
@@ -25,8 +25,6 @@ The Clojure library for [JSON-LD](http://json-ld.org/) (JavaScript Object Notati
 
 clj-json-ld implements the [JSON LD 1.0 Processing Algorithms and API](http://www.w3.org/TR/json-ld-api/)
 as a [conforming JSON-LD Processor](http://www.w3.org/TR/json-ld-api/#conformance).
-
-Whoop-de-doo! Why should you care?
 
 
 ### Benefits of Linked Data
@@ -83,7 +81,7 @@ A different API might provide this JSON about the very same book:
 
 As a human, it's easy to deduce what this is all about. We have the title of the book, the author, and different locations and images of the book.
 
-As a computer algorithm however, this is as clear as mud. Is `name` the same as `title`? Is `location` a place or a URL? Is `image` the name of a file? A full URL? A relative URL? A base-64 encoded image? What's `lang` mean?
+As a computer algorithm however, this is all quite vague. Is `name` the same as `title`? Is `location` a place or a URL? Is `image` the name of a file? A full URL? A relative URL? A base-64 encoded image? What's `lang` mean?
 
 The same JSON documents converted to JSON-LD documents remove much of this ambiguity:
 
