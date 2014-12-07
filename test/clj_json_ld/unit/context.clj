@@ -21,6 +21,8 @@
 
 (def blank-node-identifier "_:foo")
 
+(def not-strings [42 3.14 [] {} () #{}])
+
 (def active-context {
   "@base" fcms-iri
   "@vocab" "http://vocab.com/"
@@ -89,18 +91,14 @@
 
     (facts "@base of a relative IRI without an @base in the active-context is an invalid base IRI error"
 
-      (doseq [local-context [
-                {"@base" 42}
-                {"@base" 3.14}
-                {"@base" []}
-                {"@base" {}}
-                {"@base" ()}
-                {"@base" #{}}
+      (doseq [local-context (concat 
+              (map #(hash-map "@base" %) not-strings)
+              [
                 {"@base" "foo/bar"}
                 [{"@base" nil} {"@base" "foo/bar"}]
                 [{} {"@base" "foo/bar"}]
                 [{"@base" "foo/bar"} {"@base" falklandsophile-iri}]
-              ]]
+              ])]
         (update-with-local-context {} local-context) => (throws clojure.lang.ExceptionInfo))))
 
   (facts "about @vocab in local contexts"
@@ -133,19 +131,15 @@
 
     (facts "@vocab of anything else is an invalid vocab mapping"
 
-      (doseq [local-context [
-                {"@vocab" 42}
-                {"@vocab" 3.14}
-                {"@vocab" []}
-                {"@vocab" {}}
-                {"@vocab" ()}
-                {"@vocab" #{}}
-                {"@vocab" "foo"}
-                {"@vocab" "foo/bar"}
-                [{"@vocab" nil} {"@vocab" "foo/bar"}]
-                [{} {"@vocab" "foo/bar"}]
-                [{"@base" vocab-iri} {"@vocab" "foo/bar"} {"@base" another-vocab-iri}]
-              ]]
+      (doseq [local-context (concat
+                (map #(hash-map "@base" %) not-strings)
+                [
+                  {"@vocab" "foo"}
+                  {"@vocab" "foo/bar"}
+                  [{"@vocab" nil} {"@vocab" "foo/bar"}]
+                  [{} {"@vocab" "foo/bar"}]
+                  [{"@base" vocab-iri} {"@vocab" "foo/bar"} {"@base" another-vocab-iri}]
+                ])]
         (update-with-local-context {} local-context) => (throws clojure.lang.ExceptionInfo))))
 
   (facts "about @language in local contexts"
@@ -170,16 +164,8 @@
           (assoc active-context "@language" (s/lower-case another-language))))
 
     (facts "@language of any non-string invalid default language"
-
-      (doseq [local-context [
-                {"@language" 42}
-                {"@language" 3.14}
-                {"@language" []}
-                {"@language" {}}
-                {"@language" ()}
-                {"@language" #{}}
-              ]]
-        (update-with-local-context {} local-context) => (throws clojure.lang.ExceptionInfo))))
+      (doseq [value not-strings]
+        (update-with-local-context {} {"@language" value}) => (throws clojure.lang.ExceptionInfo))))
   
   (facts "about additional terms in local contexts"
 
@@ -198,16 +184,9 @@
       (update-with-local-context active-context {"@foo" "bar" "@blat" "bloo"}) =>
         (assoc active-context "@foo" {"@id" "bar"} "@blat" {"@id" "bloo"}))
 
-    (facts "a term defined as anything but a string or JSON object is an invalid term definition"
-
-      (doseq [local-context [
-                {"@foo" 42}
-                {"@foo" 3.14}
-                {"@foo" []}
-                {"@foo" ()}
-                {"@foo" #{}}
-              ]]
-        (update-with-local-context active-context local-context) => (throws clojure.lang.ExceptionInfo)))
+    (facts "a term defined as anything but a string or a JSON object is an invalid term definition"
+      (doseq [value (remove not-strings {})]
+        (update-with-local-context active-context {"@foo" value}) => (throws clojure.lang.ExceptionInfo)))
   
     (facts "a newy defined term with a valid type mapping adds the term and the type mapping to the active context"
       (update-with-local-context active-context {"foo" {"@type" "@id"}}) => (assoc active-context "foo" {"@type" "@id"})
@@ -215,6 +194,5 @@
       (update-with-local-context active-context {"foo" {"@type" fcms-iri}}) => (assoc active-context "foo" {"@type" fcms-iri}))
 
     (facts "a newly defined term with a invalid type mapping is an invalid type mapping"
-      (update-with-local-context active-context {"foo" {"@type" "_:t0"}}) => (throws clojure.lang.ExceptionInfo)
-      (update-with-local-context active-context {"foo" {"@type" "@foo"}}) => (throws clojure.lang.ExceptionInfo)
-      (update-with-local-context active-context {"foo" {"@type" "@container"}}) => (throws clojure.lang.ExceptionInfo))))
+      (doseq [type (concat not-strings ["_:t0" "@foo" "@container"])]
+        (update-with-local-context active-context {"foo" {"@type" type}}) => (throws clojure.lang.ExceptionInfo)))))
