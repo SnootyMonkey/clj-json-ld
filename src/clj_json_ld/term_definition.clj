@@ -1,6 +1,8 @@
 (ns clj-json-ld.term-definition
   "
-  6.2) Create Term Definition
+  Implement the create term definition algorithm as defined in
+  the [Create Term Definition section](http://www.w3.org/TR/json-ld-api/#create-term-definition).
+
   Term definitions are created by parsing the information in the given local context for the given term.
   "
   (:require [clojure.core.match :refer (match)]
