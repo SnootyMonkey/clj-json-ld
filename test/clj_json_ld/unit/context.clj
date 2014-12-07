@@ -214,8 +214,7 @@
       (update-with-local-context active-context {"foo" {"@type" "@vocab"}}) => (assoc active-context "foo" {"@type" "@vocab"})
       (update-with-local-context active-context {"foo" {"@type" fcms-iri}}) => (assoc active-context "foo" {"@type" fcms-iri}))
 
-    (facts "a newly defined term with a valid type mapping adds the term and the type mapping to the active context"
-      ; TODO these cause absolute? to blow up... we should make our own absolute? that wraps urly's and protects it from blowing up
-      ; (update-with-local-context active-context {"foo" {"@type" "_:t0"}}) => (throws clojure.lang.ExceptionInfo)
-      ; (update-with-local-context active-context {"foo" {"@type" "@foo"}}) => (throws clojure.lang.ExceptionInfo)
+    (facts "a newly defined term with a invalid type mapping is an invalid type mapping"
+      (update-with-local-context active-context {"foo" {"@type" "_:t0"}}) => (throws clojure.lang.ExceptionInfo)
+      (update-with-local-context active-context {"foo" {"@type" "@foo"}}) => (throws clojure.lang.ExceptionInfo)
       (update-with-local-context active-context {"foo" {"@type" "@container"}}) => (throws clojure.lang.ExceptionInfo))))

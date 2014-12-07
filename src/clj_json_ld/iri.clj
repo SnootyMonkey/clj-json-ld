@@ -116,6 +116,14 @@
   ([active-context value options] 
     (expand-it {:active-context active-context :value value :options options})))
 
+(defn absolute-iri?
+  "Wrap urly's absolute? in a try because it blows up a lot."
+  [string]
+  (try
+    (u/absolute? string)
+    (catch Exception e 
+      false))) ; it blew up urly's absolute? so... it's not
+
 (defn blank-node-identifier?
   "A blank node identifier is a string that can be used as an identifier for a blank node within the scope of a
   JSON-LD document. Blank node identifiers begin with _:."

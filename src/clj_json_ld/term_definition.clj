@@ -5,10 +5,9 @@
   "
   (:require [clojure.core.match :refer (match)]
             [defun :refer (defun defun-)]
-            [clojurewerkz.urly.core :refer (absolute?)]
             [clj-json-ld.json-ld :as json-ld]
             [clj-json-ld.json-ld-error :refer (json-ld-error)]
-            [clj-json-ld.iri :refer (expand-iri)]))
+            [clj-json-ld.iri :refer (expand-iri absolute-iri?)]))
 
 (defun- handle-type 
   ;; 10) If value contains the key @type:
@@ -31,7 +30,7 @@
                             :defined defined})]
         ;; ...If the expanded type is neither @id, nor @vocab, nor an absolute IRI, an invalid type mapping
         ;; error has been detected and processing is aborted.
-        (if-not (or (contains? #{"@id" "@vocab"} expanded-type) (absolute? expanded-type))
+        (if-not (or (contains? #{"@id" "@vocab"} expanded-type) (absolute-iri? expanded-type))
           (json-ld-error "invalid type mapping" (str "@type of term " term " in the local context is not valid.")))
 
         ;; 10.3) Set the type mapping for definition to type.

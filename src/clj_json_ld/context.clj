@@ -6,8 +6,8 @@
   (:require [defun :refer (defun defun-)]
             [clojure.core.match :refer (match)]
             [clojure.string :as s]
-            [clojurewerkz.urly.core :as u]
-            [clj-json-ld.iri :refer (blank-node-identifier?)]
+            [clojurewerkz.urly.core :refer (resolve)]
+            [clj-json-ld.iri :refer (blank-node-identifier? absolute-iri?)]
             [clj-json-ld.term-definition :refer (create-term-definition)]
             [clj-json-ld.json-ld-error :refer (json-ld-error)]))
 
@@ -31,13 +31,13 @@
         [value :guard #(not %)] (dissoc result "@base")
         
         ;; 3.4.3) Otherwise, if value is an absolute IRI, the base IRI of result is set to value.
-        [value :guard #(and (string? %) (u/absolute? %))] (assoc result "@base" value)
+        [value :guard absolute-iri?] (assoc result "@base" value)
 
         ;; 3.4.4) Otherwise, if value is a relative IRI and the base IRI of result is not null,
         ;; set the base IRI of result to the result of resolving value against the current base IRI
         ;; of result.
         [value :guard #(and (string? %) (not (s/blank? (get result "@base"))))]
-          (assoc result "@base" (u/resolve (get result "@base") value))
+          (assoc result "@base" (resolve (get result "@base") value))
 
         ;; 3.4.5) Otherwise, an invalid base IRI error has been detected and processing is aborted.
         [_] (json-ld-error "invalid base IRI"
@@ -58,7 +58,7 @@
       ;; and processing is aborted.
       (if (and
             (string? vocab)
-            (or (blank-node-identifier? vocab) (u/absolute? vocab)))
+            (or (blank-node-identifier? vocab) (absolute-iri? vocab)))
         (assoc result "@vocab" vocab)
         (json-ld-error "invalid vocab mapping"
           "local context has @vocab but it's not an absolute IRI or a blank node identifier"))
