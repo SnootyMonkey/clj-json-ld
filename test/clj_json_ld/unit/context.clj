@@ -188,11 +188,26 @@
       (doseq [value (remove not-strings {})]
         (update-with-local-context active-context {"@foo" value}) => (throws clojure.lang.ExceptionInfo)))
   
-    (facts "a newy defined term with a valid type mapping adds the term and the type mapping to the active context"
-      (update-with-local-context active-context {"foo" {"@type" "@id"}}) => (assoc active-context "foo" {"@type" "@id"})
-      (update-with-local-context active-context {"foo" {"@type" "@vocab"}}) => (assoc active-context "foo" {"@type" "@vocab"})
-      (update-with-local-context active-context {"foo" {"@type" fcms-iri}}) => (assoc active-context "foo" {"@type" fcms-iri}))
+    (facts "about @type values in a defined term"
 
-    (facts "a newly defined term with a invalid type mapping is an invalid type mapping"
-      (doseq [type (concat not-strings ["_:t0" "@foo" "@container"])]
-        (update-with-local-context active-context {"foo" {"@type" type}}) => (throws clojure.lang.ExceptionInfo)))))
+      (facts "a term defined with a valid @type mapping adds the term and the @type mapping to the active context"
+        (update-with-local-context active-context {"foo" {"@type" "@id"}}) => (assoc active-context "foo" {"@type" "@id"})
+        (update-with-local-context active-context {"foo" {"@type" "@vocab"}}) => (assoc active-context "foo" {"@type" "@vocab"})
+        (update-with-local-context active-context {"foo" {"@type" fcms-iri}}) => (assoc active-context "foo" {"@type" fcms-iri}))
+
+      (facts "a term defined with a invalid @type mapping is an invalid type mapping"
+        (doseq [type (concat not-strings [blank-node-identifier "@foo" "@container"])]
+          (update-with-local-context active-context {"foo" {"@type" type}}) => (throws clojure.lang.ExceptionInfo))))
+
+    (facts "about @reverse values in a defined term"
+
+      (facts "a term defined with a valid @reverse adds the term and the @reverse mapping to the active context"
+        (update-with-local-context active-context {"foo" {"@reverse" blank-node-identifier}}) => (assoc active-context "foo" {"@reverse" blank-node-identifier})
+        (update-with-local-context active-context {"foo" {"@reverse" fcms-iri}}) => (assoc active-context "foo" {"@reverse" fcms-iri}))
+
+      (fact "a term defined with @reverse and @id is an invalid reverse property"
+        (update-with-local-context active-context {"foo" {"@reverse" "foo" "@id" "foo"}}) => (throws clojure.lang.ExceptionInfo))
+      
+      (fact "a term defined with an @reverse value that's not a string is an invalid IRI mapping"
+        (doseq [value not-strings]
+          (update-with-local-context active-context {"foo" {"@reverse" value}}) => (throws clojure.lang.ExceptionInfo))))))

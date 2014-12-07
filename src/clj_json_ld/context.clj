@@ -6,7 +6,7 @@
   (:require [defun :refer (defun defun-)]
             [clojure.core.match :refer (match)]
             [clojure.string :as s]
-            [clojurewerkz.urly.core :refer (resolve)]
+            [clojurewerkz.urly.core :as u]
             [clj-json-ld.iri :refer (blank-node-identifier? absolute-iri?)]
             [clj-json-ld.term-definition :refer (create-term-definition)]
             [clj-json-ld.json-ld-error :refer (json-ld-error)]))
@@ -37,7 +37,7 @@
         ;; set the base IRI of result to the result of resolving value against the current base IRI
         ;; of result.
         [value :guard #(and (string? %) (not (s/blank? (get result "@base"))))]
-          (assoc result "@base" (resolve (get result "@base") value))
+          (assoc result "@base" (u/resolve (get result "@base") value))
 
         ;; 3.4.5) Otherwise, an invalid base IRI error has been detected and processing is aborted.
         [_] (json-ld-error "invalid base IRI"
