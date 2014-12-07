@@ -116,13 +116,14 @@
 ;; 3.4, 3.5, and 3.6) If context IS a JSON object, process the context.
 (defn- process-local-context [result context remote-contexts]
   (-> result
-    ;; 3.4) If context has an @base key and remote contexts is empty, i.e., the currently being processed context is not a remote context: 
+    ;; 3.4) If context has an @base key and remote contexts is empty, i.e., the currently being processed
+    ;; context is not a remote context: 
     (process-base-key context remote-contexts)
     ;; 3.5) If context has an @vocab key: 
     (process-vocab-key context)
     ;; 3.6) If context has an @language key: 
     (process-language-key context)
-    ;; 3.8)
+    ;; 3.8) For each key-value pair in context where key is not @base, @vocab, or @language...
     (process-other-keys context)))
 
 (defun update-with-local-context 
