@@ -30,7 +30,7 @@
       :plugins [
         [codox "0.8.10"] ; Generate Clojure API docs https://github.com/weavejester/codox
         [lein-midje "3.1.3"] ; Example-based testing https://github.com/marick/lein-midje
-        [lein-bikeshed "0.1.8"] ; Check for code smells https://github.com/dakrone/lein-bikeshed
+        [lein-bikeshed "0.2.0"] ; Check for code smells https://github.com/dakrone/lein-bikeshed
         [lein-kibit "0.0.8"] ; Static code search for non-idiomatic code https://github.com/jonase/kibit
         [jonase/eastwood "0.2.0"] ; Clojure linter https://github.com/jonase/eastwood
         [lein-checkall "0.1.1"] ; Runs bikeshed, kibit and eastwood https://github.com/itang/lein-checkall
