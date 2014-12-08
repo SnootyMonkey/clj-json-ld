@@ -85,7 +85,7 @@
         (if (contains? value "@container") 
           (let [container-value (get value "@container")]
             (if-not (or (= container-value "@set") (= container-value "@index") (= container-value nil))
-              (json-ld-error "invalid reverse property" (str "Reverse property for term " term " was not @set, @index or null.")))))
+              (json-ld-error "invalid reverse property" (str "The value of @container for term " term " was not @set, @index or null.")))))
 
         ;; 11.4) If value contains an @container member, set the container mapping of definition to its value
         ;; 11.5) Set the reverse property flag of definition to true.
@@ -110,7 +110,17 @@
 (defun- handle-container
   ;; 16) If value contains the key @container: 
   ([updated-context term value :guard #(contains? % "@container")]
-    updated-context)
+
+    ;; 16.1) Initialize container to the value associated with the @container key, ...
+    (let [container-value (get value "@container")]
+      ;; ... which must be either @list, @set, @index, or @language. Otherwise, an
+      ;; invalid container mapping error has been detected and processing is aborted.
+      (if-not (contains? #{"@list" "@set" "@index" "@language"} container-value)
+        (json-ld-error "invalid container mapping" (str "The value of @container for term " term " was not @list, @set, @index or @language.")))
+  
+      ;; 16.2) Set the container mapping of definition to container.
+      (let [term-definition (or (get updated-context term) {})]
+        (assoc updated-context term (assoc term-definition "@container" container-value)))))
 
   ; updated-context has no @container key, so do nothing
   ([updated-context _ _] updated-context))
