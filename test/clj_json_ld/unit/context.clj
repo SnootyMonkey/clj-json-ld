@@ -202,8 +202,10 @@
     (facts "about @reverse values in a defined term"
 
       (facts "a term defined with a valid @reverse adds the term and the @reverse mapping to the active context"
-        (update-with-local-context active-context {"foo" {"@reverse" blank-node-identifier}}) => (assoc active-context "foo" {"@reverse" blank-node-identifier})
-        (update-with-local-context active-context {"foo" {"@reverse" fcms-iri}}) => (assoc active-context "foo" {"@reverse" fcms-iri}))
+        (update-with-local-context active-context {"foo" {"@reverse" blank-node-identifier}}) =>
+          (assoc active-context "foo" {:reverse true "@reverse" blank-node-identifier})
+        (update-with-local-context active-context {"foo" {"@reverse" fcms-iri}}) =>
+          (assoc active-context "foo" {:reverse true "@reverse" fcms-iri}))
 
       (fact "a term defined with @reverse and @id is an invalid reverse property"
         (update-with-local-context active-context {"foo" {"@reverse" "foo" "@id" "foo"}}) => (throws clojure.lang.ExceptionInfo))

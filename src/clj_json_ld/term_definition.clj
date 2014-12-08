@@ -37,7 +37,6 @@
           (json-ld-error "invalid type mapping" (str "@type of term " term " in the local context is not valid.")))
 
         ;; 10.3) Set the type mapping for definition to type.
-        ;; TODO Sent an email to list on Dec. 7, 2014
         (let [term-definition (or (get updated-context term) {})]
           (assoc updated-context term (assoc term-definition "@type" expanded-type))))))
 
@@ -78,14 +77,14 @@
         ;; if its value is neither @set, nor @index, nor null, an invalid reverse property error has been detected
         ;; (reverse properties only support set- and index-containers) and processing is aborted.
     
-        ;; TODO Sent an email to list on Dec. 7, 2014
         ;; 11.5) Set the reverse property flag of definition to true.
-    
-        ;; TODO Sent an email to list on Dec. 7, 2014
         ;; 11.6) Set the term definition of term in active context to definition and the value associated with
         ;; defined's key term to true and return.
         (let [term-definition (or (get updated-context term) {})]
-          (assoc updated-context term (assoc term-definition "@reverse" expanded-reverse))))))
+          (assoc updated-context term 
+            (-> term-definition
+              (assoc "@reverse" expanded-reverse)
+              (assoc :reverse true)))))))
 
   ; updated-context has no @reverse key, so do nothing
   ([updated-context _ _ _ _] updated-context))
