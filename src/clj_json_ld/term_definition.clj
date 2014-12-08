@@ -44,11 +44,17 @@
   ([updated-context _ _ _ _] 
     updated-context))
 
+(defun- add-optional-container
+  "Add the value of @container in the term to the term definition map, with the key @container"
+  ([value :guard #(contains? % "@container") term-definition]
+    (assoc term-definition "@container" (get value "@container")))
+  ([_ term-definition] term-definition)) ; value doesn't contain @container, so do nothing
+
 (defun- handle-reverse
   ;; 11) If value contains the key @reverse:
   ([updated-context term value :guard #(contains? % "@reverse") local-context defined]
 
-    ;; 11.1) If value contains an @id, member, an invalid reverse property error has been detected and processing
+    ;; 11.1) If value contains an @id member, an invalid reverse property error has been detected and processing
     ;; is aborted.
     (if (contains? value "@id") (json-ld-error "invalid reverse property" (str term " contains both @reverse and @id")))
     
@@ -73,18 +79,24 @@
           (json-ld-error "invalid IRI mapping error"
             (str "The value of @reverse for term " term " is not a absolute IRI or a blank node identifier.")))
     
-        ;; 11.4) If value contains an @container member, set the container mapping of definition to its value;
-        ;; if its value is neither @set, nor @index, nor null, an invalid reverse property error has been detected
-        ;; (reverse properties only support set- and index-containers) and processing is aborted.
-    
+        ;; 11.4) If value contains an @container member, ... if its value is neither @set, nor @index, nor null,
+        ;; an invalid reverse property error has been detected (reverse properties only support set- and
+        ;; index-containers) and processing is aborted.
+        (if (contains? value "@container") 
+          (let [container-value (get value "@container")]
+            (if-not (or (= container-value "@set") (= container-value "@index") (= container-value nil))
+              (json-ld-error "invalid reverse property" (str "Reverse property for term " term " was not @set, @index or null.")))))
+
+        ;; 11.4) If value contains an @container member, set the container mapping of definition to its value
         ;; 11.5) Set the reverse property flag of definition to true.
         ;; 11.6) Set the term definition of term in active context to definition and the value associated with
         ;; defined's key term to true and return.
         (let [term-definition (or (get updated-context term) {})]
-          (assoc updated-context term 
-            (-> term-definition
-              (assoc "@reverse" expanded-reverse)
-              (assoc :reverse true)))))))
+          (assoc updated-context term
+            (add-optional-container value
+              (-> term-definition
+                (assoc "@reverse" expanded-reverse)
+                (assoc :reverse true))))))))
 
   ; updated-context has no @reverse key, so do nothing
   ([updated-context _ _ _ _] updated-context))

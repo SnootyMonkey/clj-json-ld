@@ -207,8 +207,18 @@
         (update-with-local-context active-context {"foo" {"@reverse" fcms-iri}}) =>
           (assoc active-context "foo" {:reverse true "@reverse" fcms-iri}))
 
+      (fact "a term defined with @reverse and a valid @container of @index, @set or @nil, adds them to the active context"
+        (doseq [container-value ["@index", "@set", nil]]
+          (update-with-local-context active-context {"foo" {"@reverse" fcms-iri "@container" container-value}}) =>
+            (assoc active-context "foo" {:reverse true "@reverse" fcms-iri "@container" container-value})))
+
       (fact "a term defined with @reverse and @id is an invalid reverse property"
         (update-with-local-context active-context {"foo" {"@reverse" "foo" "@id" "foo"}}) => (throws clojure.lang.ExceptionInfo))
+
+      (fact "a term defined with @reverse and @container that is not @index, @set or nil is an invalid reverse property"
+        (doseq [container-value (concat not-strings ["foo" "@id"])]
+          (update-with-local-context active-context {"foo" {"@reverse" "foo" "@container" container-value}}) =>
+            (throws clojure.lang.ExceptionInfo)))
       
       (fact "a term defined with an @reverse value that's not a string is an invalid IRI mapping"
         (doseq [value not-strings]
