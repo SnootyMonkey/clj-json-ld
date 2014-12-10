@@ -234,4 +234,21 @@
       (fact "a term defined with @container that is not @list, @set, @index or @language is an invalid container mapping"
         (doseq [container-value (concat not-strings ["foo" "@id"])]
           (update-with-local-context active-context {"foo" {"@container" container-value}}) =>
+            (throws clojure.lang.ExceptionInfo))))
+
+    (facts "about @language values in a defined term"
+
+      (facts "a term defined with a valid @language adds the @language mapping to the active context"
+        (doseq [language-value [language another-language nil]]
+          (update-with-local-context active-context {"foo" {"@language" language-value}}) =>
+            (assoc active-context "foo" {"@language" (if language-value (s/lower-case language-value) nil)})))
+
+      (facts "a term defined with a valid @language and a @type skips adding the @language mapping to the active context"
+        (doseq [language-value [language another-language nil]]
+          (update-with-local-context active-context {"foo" {"@type" "@id" "@language" language-value}}) =>
+            (assoc active-context "foo" {"@type" "@id"})))
+
+      (facts "a term defined with @language that is not a string or null"
+        (doseq [language-value not-strings]
+          (update-with-local-context active-context {"foo" {"@language" language-value}}) =>
             (throws clojure.lang.ExceptionInfo))))))

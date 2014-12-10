@@ -5,7 +5,8 @@
 
   Term definitions are created by parsing the information in the given local context for the given term.
   "
-  (:require [clojure.core.match :refer (match)]
+  (:require [clojure.string :as s]
+            [clojure.core.match :refer (match)]
             [defun :refer (defun defun-)]
             [clj-json-ld.json-ld :as json-ld]
             [clj-json-ld.json-ld-error :refer (json-ld-error)]
@@ -128,7 +129,18 @@
 (defun- handle-language
   ;; 17) If value contains the key @language and does not contain the key @type: 
   ([updated-context term value :guard #(and (contains? % "@language") (not (contains? % "@type")))]
-    updated-context)
+    
+    ;; 17.1) Initialize language to the value associated with the @language key, which must be either null or
+    ;; a string. Otherwise, an invalid language mapping error has been detected and processing is aborted.
+    (let [language (get value "@language")]
+      (if-not (or (string? language) (nil? language))
+        (json-ld-error "invalid language mapping" (str "The value of @language for term " term " was not a string or null.")))
+  
+        ;; 17.2) If language is a string set it to lowercased language.
+        ;; Set the language mapping of definition to language.
+        (let [term-definition (or (get updated-context term) {})]
+          (assoc updated-context term
+            (assoc term-definition "@language" (if language (s/lower-case language) nil))))))
 
   ; updated-context has no @language key, so do nothing
   ([updated-context _ _] updated-context))
