@@ -148,6 +148,7 @@
         
         ;; ... if it equals @context, an invalid keyword alias error has been detected and processing is aborted.
 
+        ;; set the IRI mapping of definition to the result of using the IRI Expansion algorithm
     updated-context)
 
   ;; 14) Otherwise if the term contains a colon (:): 

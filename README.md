@@ -1,7 +1,7 @@
 --=  clj-json-ld  =--
 =====================
 
-[![MPL License](http://img.shields.io/badge/license-MPL-green.svg?style=flat)](https://www.mozilla.org/MPL/2.0/)
+[![MPL License](http://img.shields.io/badge/license-MPL-blue.svg?style=flat)](https://www.mozilla.org/MPL/2.0/)
 [![Build Status](http://img.shields.io/travis/SnootyMonkey/clj-json-ld.svg?style=flat)](https://travis-ci.org/SnootyMonkey/clj-json-ld)
 
 > "Data is messy and disconnected. JSON-LD organizes and connects it, creating a better Web."
