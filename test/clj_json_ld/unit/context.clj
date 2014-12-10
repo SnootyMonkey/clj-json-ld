@@ -224,6 +224,16 @@
         (doseq [value not-strings]
           (update-with-local-context active-context {"foo" {"@reverse" value}}) => (throws clojure.lang.ExceptionInfo))))
 
+    (facts "about iri mapping"
+
+      (facts "when term has an @id that isn't the term"
+
+        (facts "and the value of @id is not a string it is an invalid IRI mapping"
+          (doseq [id-value not-strings]
+            (update-with-local-context active-context {"foo" {"@id" id-value}}) =>
+              (throws clojure.lang.ExceptionInfo)))
+      )
+    )
     (facts "about @container values in a defined term"
 
       (facts "a term defined with a valid @container adds the term and the container mapping to the active context"

@@ -26,7 +26,6 @@
       
       ;; 10.2) Set type to the result of using the IRI Expansion algorithm, passing active context, type for value,
       ;; true for vocab, false for document relative, local context, and defined....
-      ;; is aborted.
       (let [expanded-type (expand-iri updated-context type {
                             :vocab true
                             :document-relative false
@@ -102,11 +101,59 @@
   ; updated-context has no @reverse key, so do nothing
   ([updated-context _ _ _ _] updated-context))
 
-(defn- handle-13-14-15 [updated-context term value]
+(defn- match-13?
+  "
+  Given a tuple of term and value, return true if this condition holds:
+  13) If value contains the key @id and its value does not equal term:
+  "
+  [term-value]
+  (let [term (first term-value)
+        value (last term-value)
+        id? (contains? value "@id")
+        id-value (get value "@id")]
+    (and id? (not (= id-value term)))))
+
+(defun- handle-iri-mapping
+  "Potential match for each mutually exclusive case of IRI mapping: 13, 14 and 15."
+  
   ;; 13) If value contains the key @id and its value does not equal term:
+  ([updated-context term-value :guard match-13? local-context defined]
+    
+    ;; 13.1) If the value associated with the @id key is not a string, an invalid IRI mapping error has been
+    ;; detected and processing is aborted.
+    (let [term (first term-value)
+          value (last term-value)
+          id-value (get value "@id")]
+      (if-not (string? id-value)
+        (json-ld-error "invalid IRI mapping" (str "The value of @id for term " term " was not a string.")))
+    
+      ;; 13.2) Otherwise, set the IRI mapping of definition to the result of using the IRI Expansion algorithm,
+      ;; passing active context, the value associated with the @id key for value, true for vocab, false for document
+      ;; relative, local context, and defined. ...
+      (let [iri-mapping (expand-iri updated-context id-value {
+                            :vocab true
+                            :document-relative false
+                            :local-context local-context
+                            :defined defined})]
+
+        ;; ... If the resulting IRI mapping is neither a keyword, nor an absolute IRI,
+        ;; nor a blank node identifier, an invalid IRI mapping error has been detected
+        ;; and processing is aborted; ...
+        (if-not (or 
+                  (contains? json-ld/keywords iri-mapping)
+                  (absolute-iri? iri-mapping)
+                  (blank-node-identifier? iri-mapping))
+          (json-ld-error "invalid IRI mapping"
+            (str "The value of @id for term " term " was not a JSON-LD keyword, an absolute IRI, or a blank node identifier.")))))
+        
+        ;; ... if it equals @context, an invalid keyword alias error has been detected and processing is aborted.
+
+    updated-context)
+
   ;; 14) Otherwise if the term contains a colon (:): 
+  
   ;; 15) Otherwise, if active context has a vocabulary mapping, the IRI mapping of definition is set to the result of concatenating the value associated with the vocabulary mapping and term. If it does not have a vocabulary mapping, an invalid IRI mapping error been detected and processing is aborted.
-  updated-context)
+  ([updated-context _ _ _] updated-context))
 
 (defun- handle-container
   ;; 16) If value contains the key @container: 
@@ -159,7 +206,7 @@
             ;; 11) If value contains the key @reverse:
             (handle-reverse term value local-context defined)    
             ;; 13) - 14) - 15)
-            (handle-13-14-15 term value)
+            (handle-iri-mapping [term value] local-context defined)
             ;; 16) If value contains the key @container: 
             (handle-container term value)
             ;; 17) If value contains the key @language and does not contain the key @type: 
