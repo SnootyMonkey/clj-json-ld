@@ -139,7 +139,6 @@
         ;; ... If the resulting (expanded) IRI mapping is neither a keyword, nor an absolute IRI,
         ;; nor a blank node identifier, an invalid IRI mapping error has been detected
         ;; and processing is aborted; ...
-        ;; TODO how to trigger this case with a test?
         (if-not (or 
                   (contains? json-ld/keywords iri-mapping)
                   (absolute-iri? iri-mapping)

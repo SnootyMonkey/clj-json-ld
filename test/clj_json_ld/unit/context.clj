@@ -254,6 +254,10 @@
               (throws clojure.lang.ExceptionInfo)))
 
         (facts "and the value of @id is not a JSON-LD keyword, an absolute IRI, or a blank node identifier it is an invalid IRI mapping"
+          (update-with-local-context (dissoc active-context "@vocab") {"foo" {"@id" "bar"}}) =>
+              (throws clojure.lang.ExceptionInfo))
+
+        (facts "and the value of @id is @context it is an invalid IRI mapping"
           (update-with-local-context active-context {"foo" {"@id" "@context"}}) =>
               (throws clojure.lang.ExceptionInfo))))
 
