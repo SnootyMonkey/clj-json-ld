@@ -6,6 +6,7 @@
             [midje.sweet :refer :all]
             [clj-json-ld.json-ld :as json-ld]
             [clj-json-ld.context :refer (update-with-local-context)]
+            [clj-json-ld.iri :refer (expand-iri)]
             [clojurewerkz.urly.core :as u]))
 
 (def fcms-iri "http://falkland-cms.com/")
@@ -191,9 +192,14 @@
     (facts "about @type values in a defined term"
 
       (facts "a term defined with a valid @type mapping adds the term and the @type mapping to the active context"
-        (doseq [type-value ["@id" "@vocab" fcms-iri]]
+        (doseq [type-value ["@id" "@vocab" "bar" "foo:bar" fcms-iri]]
           (update-with-local-context active-context {"foo" {"@type" type-value}}) =>
-            (assoc active-context "foo" {"@type" type-value})))
+            (assoc active-context "foo" {"@type" 
+              (expand-iri active-context type-value {
+                  :vocab true
+                  :document-relative false
+                  :local-context {}
+                  :defined {}})})))
 
       (facts "a term defined with a invalid @type mapping is an invalid type mapping"
         (doseq [type (concat not-strings [blank-node-identifier "@foo" "@container"])]
@@ -201,11 +207,15 @@
 
     (facts "about @reverse values in a defined term"
 
-      (facts "a term defined with a valid @reverse adds the term and the @reverse mapping to the active context"
-        (update-with-local-context active-context {"foo" {"@reverse" blank-node-identifier}}) =>
-          (assoc active-context "foo" {:reverse true "@reverse" blank-node-identifier})
-        (update-with-local-context active-context {"foo" {"@reverse" fcms-iri}}) =>
-          (assoc active-context "foo" {:reverse true "@reverse" fcms-iri}))
+      (facts "a term defined with a valid @reverse adds the term and the expanded @reverse mapping to the term definition in the active context"
+        (doseq [reverse-value [blank-node-identifier "bar" "foo:bar" fcms-iri]]
+          (update-with-local-context active-context {"foo" {"@reverse" "bar"}}) =>
+            (assoc active-context "foo" {:reverse true "@reverse"
+              (expand-iri active-context "bar" {
+                    :vocab true
+                    :document-relative false
+                    :local-context {}
+                    :defined {}})})))
 
       (fact "a term defined with @reverse and a valid @container of @index or @set, adds them to the active context"
         (doseq [container-value ["@index", "@set"]]
@@ -228,15 +238,28 @@
 
       (facts "when term has an @id that isn't the term"
 
+        (facts "a term defined with a valid @id adds the expanded IRI to the term definition in the active context"
+          (doseq [id-value ["bar" "foo:bar" fcms-iri]]
+            (update-with-local-context active-context {"foo" {"@id" id-value}}) =>
+              (assoc active-context "foo"
+                {"@id" (expand-iri active-context id-value {
+                  :vocab true
+                  :document-relative false
+                  :local-context {}
+                  :defined {}})})))
+
         (facts "and the value of @id is not a string it is an invalid IRI mapping"
           (doseq [id-value not-strings]
             (update-with-local-context active-context {"foo" {"@id" id-value}}) =>
               (throws clojure.lang.ExceptionInfo)))
-      )
-    )
+
+        (facts "and the value of @id is not a JSON-LD keyword, an absolute IRI, or a blank node identifier it is an invalid IRI mapping"
+          (update-with-local-context active-context {"foo" {"@id" "@context"}}) =>
+              (throws clojure.lang.ExceptionInfo))))
+
     (facts "about @container values in a defined term"
 
-      (facts "a term defined with a valid @container adds the term and the container mapping to the active context"
+      (facts "a term defined with a valid @container adds the term and the container mapping to the term definition in the active context"
         (doseq [container-value ["@list" "@set" "@index" "@language"]]
           (update-with-local-context active-context {"foo" {"@container" container-value}}) =>
             (assoc active-context "foo" {"@container" container-value})))
@@ -248,7 +271,7 @@
 
     (facts "about @language values in a defined term"
 
-      (facts "a term defined with a valid @language adds the @language mapping to the active context"
+      (facts "a term defined with a valid @language adds the @language mapping to the term definition in the active context"
         (doseq [language-value [language another-language nil]]
           (update-with-local-context active-context {"foo" {"@language" language-value}}) =>
             (assoc active-context "foo" {"@language" (if language-value (s/lower-case language-value) nil)})))

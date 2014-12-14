@@ -136,20 +136,24 @@
                             :local-context local-context
                             :defined defined})]
 
-        ;; ... If the resulting IRI mapping is neither a keyword, nor an absolute IRI,
+        ;; ... If the resulting (expanded) IRI mapping is neither a keyword, nor an absolute IRI,
         ;; nor a blank node identifier, an invalid IRI mapping error has been detected
         ;; and processing is aborted; ...
+        ;; TODO how to trigger this case with a test?
         (if-not (or 
                   (contains? json-ld/keywords iri-mapping)
                   (absolute-iri? iri-mapping)
                   (blank-node-identifier? iri-mapping))
           (json-ld-error "invalid IRI mapping"
-            (str "The value of @id for term " term " was not a JSON-LD keyword, an absolute IRI, or a blank node identifier.")))))
+            (str "The value of @id for term " term " was not a JSON-LD keyword, an absolute IRI, or a blank node identifier.")))
         
         ;; ... if it equals @context, an invalid keyword alias error has been detected and processing is aborted.
+        (if (= iri-mapping "@context")
+          (json-ld-error "invalid keyword alias" (str "The value of @id for term " term " cannot be @context.")))
 
         ;; set the IRI mapping of definition to the result of using the IRI Expansion algorithm
-    updated-context)
+        (let [term-definition (or (get updated-context term) {})]
+          (assoc updated-context term (assoc term-definition "@id" iri-mapping))))))
 
   ;; 14) Otherwise if the term contains a colon (:): 
   
