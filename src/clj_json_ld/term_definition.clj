@@ -155,9 +155,28 @@
           (assoc updated-context term (assoc term-definition "@id" iri-mapping))))))
 
   ;; 14) Otherwise if the term contains a colon (:): 
-  
-  ;; 15) Otherwise, if active context has a vocabulary mapping, the IRI mapping of definition is set to the result of concatenating the value associated with the vocabulary mapping and term. If it does not have a vocabulary mapping, an invalid IRI mapping error been detected and processing is aborted.
-  ([updated-context _ _ _] updated-context))
+  ([updated-context term-value :guard #(re-find #":" (first %)) local-context defined]
+
+    ;; 14.1 If term is a compact IRI with a prefix that is a key in local context a dependency has been found.
+    ;; Use this algorithm recursively passing active context, local context, the prefix as term, and defined.
+    ;; 14.2 If term's prefix has a term definition in active context, set the IRI mapping of definition to the result of concatenating
+    ;; the value associated with the prefix's IRI mapping and the term's suffix.
+    ;; 14.3 Otherwise, term is an absolute IRI or blank node identifier. Set the IRI mapping of definition to term.
+    updated-context)
+
+  ;; 15) Otherwise, ...
+  ([updated-context term-value _ _]
+    ;; ... if active context has a vocabulary mapping, the IRI mapping of definition is set to the result of concatenating the
+    ;; value associated with the vocabulary mapping and term. If it does not have a vocabulary mapping, an invalid IRI mapping error been
+    ;; detected and processing is aborted.
+
+    ;; TODO this blows up lots of bad assumptions in prior tests
+    ; (if-let [vocabulary-mapping (get updated-context "@vocab")]
+    ;     (let [term (first term-value)
+    ;           term-definition (or (get updated-context term) {})]
+    ;       (assoc updated-context term (assoc term-definition "@id" (str vocabulary-mapping term))))
+    ;     (json-ld-error "invalid IRI mapping" (str "There is no vocabulary mapping for the term " (first term-value))))))
+    updated-context))
 
 (defun- handle-container
   ;; 16) If value contains the key @container: 
