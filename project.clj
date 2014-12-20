@@ -14,7 +14,7 @@
 
   :dependencies [
     [org.clojure/clojure "1.6.0"] ; Lisp on the JVM http://clojure.org/documentation
-    [org.clojure/core.match "0.3.0-alpha3"] ; Erlang-esque pattern matching https://github.com/clojure/core.match
+    [org.clojure/core.match "0.3.0-alpha4"] ; Erlang-esque pattern matching https://github.com/clojure/core.match
     [defun "0.2.0-RC"] ; Erlang-esque pattern matching for Clojure functions https://github.com/killme2008/defun
     [cheshire "5.4.0"] ; JSON de/encoding https://github.com/dakrone/cheshire
     [clojurewerkz/urly "2.0.0-alpha5"] ; URI and URL parsing library https://github.com/michaelklishin/urly
