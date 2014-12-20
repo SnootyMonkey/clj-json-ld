@@ -235,6 +235,7 @@
 
     (facts "about iri mapping"
 
+      ;; 13.x
       (facts "when term has an @id that isn't the term"
 
         (facts "a term defined with a valid @id adds the expanded IRI to the term definition in the active context"
@@ -258,7 +259,23 @@
 
         (facts "and the value of @id is @context it is an invalid IRI mapping"
           (update-with-local-context active-context {"foo" {"@id" "@context"}}) =>
-              (throws clojure.lang.ExceptionInfo))))
+              (throws clojure.lang.ExceptionInfo)))
+
+      ;; 14.x
+      (future-facts "when term has an @id that is the term and it contains a colon")
+
+      ;; 15.x
+      (facts "when term has an @id that is the term and it doesn't contain a colon"
+
+        (fact "and the term has a vocabulary mapping"
+          (update-with-local-context active-context {"foo" {"@id" "foo"}}) =>
+            (assoc active-context "foo" {"@id" "http://vocab.com/foo"}))
+
+
+        (fact "and the term doesn't have a vocabulary mapping it is an invalid IRI mapping"
+          (update-with-local-context (dissoc active-context "@vocab") {"foo" {"@id" "foo"}}) =>
+            (throws clojure.lang.ExceptionInfo))))
+
 
     (facts "about @container values in a defined term"
 
