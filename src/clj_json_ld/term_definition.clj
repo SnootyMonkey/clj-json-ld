@@ -169,14 +169,11 @@
     ;; ... if active context has a vocabulary mapping, the IRI mapping of definition is set to the result of concatenating the
     ;; value associated with the vocabulary mapping and term. If it does not have a vocabulary mapping, an invalid IRI mapping error been
     ;; detected and processing is aborted.
-
-    ;; TODO this blows up lots of bad assumptions in prior tests
-    ; (if-let [vocabulary-mapping (get updated-context "@vocab")]
-    ;     (let [term (first term-value)
-    ;           term-definition (or (get updated-context term) {})]
-    ;       (assoc updated-context term (assoc term-definition "@id" (str vocabulary-mapping term))))
-    ;     (json-ld-error "invalid IRI mapping" (str "There is no vocabulary mapping for the term " (first term-value))))))
-    updated-context))
+    (if-let [vocabulary-mapping (get updated-context "@vocab")]
+        (let [term (first term-value)
+              term-definition (or (get updated-context term) {})]
+          (assoc updated-context term (assoc term-definition "@id" (str vocabulary-mapping term))))
+        (json-ld-error "invalid IRI mapping" (str "There is no vocabulary mapping for the term " (first term-value))))))
 
 (defun- handle-container
   ;; 16) If value contains the key @container: 
