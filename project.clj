@@ -32,7 +32,7 @@
         [lein-midje "3.1.3"] ; Example-based testing https://github.com/marick/lein-midje
         [lein-bikeshed "0.2.0"] ; Check for code smells https://github.com/dakrone/lein-bikeshed
         [lein-kibit "0.0.8"] ; Static code search for non-idiomatic code https://github.com/jonase/kibit
-        [jonase/eastwood "0.2.0"] ; Clojure linter https://github.com/jonase/eastwood
+        [jonase/eastwood "0.2.1"] ; Clojure linter https://github.com/jonase/eastwood
         [lein-checkall "0.1.1"] ; Runs bikeshed, kibit and eastwood https://github.com/itang/lein-checkall
         [lein-ancient "0.5.5"] ; Check for outdated dependencies https://github.com/xsc/lein-ancient
         [lein-spell "0.1.0"] ; Catch spelling mistakes in docs and docstrings https://github.com/cldwalker/lein-spell
@@ -55,5 +55,19 @@
     "test!" ["with-profile" "dev" "do" "build," "midje"] ; build and run all tests
     "spell!" ["spell" "-n"] ; check spelling in docs and docstrings
     "ancient" ["with-profile" "dev" "do" "ancient" ":allow-qualified," "ancient" ":plugins" ":allow-qualified"] ; check for out of date dependencies
+  }
+
+  ;; ----- Code check configuration -----
+
+  :eastwood {
+    :exclude-linters [:keyword-typos]
+    :exclude-namespaces [
+      clj-json-ld.unit.context
+      clj-json-ld.unit.iri
+      clj-json-ld.unit.value
+      clj-json-ld.spec.compaction
+      clj-json-ld.spec.expansion
+      clj-json-ld.spec.flattening
+    ]
   }
 )

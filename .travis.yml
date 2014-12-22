@@ -3,6 +3,7 @@ lein: lein2
 script: 
   - git clone https://github.com/json-ld/tests json-ld-tests
   - lein2 test!
+  - lein2 eastwood
 branches:
   only:
     - master
