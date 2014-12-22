@@ -54,6 +54,7 @@
     "midje" ["with-profile" "dev" "midje"] ; run all tests
     "test!" ["with-profile" "dev" "do" "build," "midje"] ; build and run all tests
     "spell!" ["spell" "-n"] ; check spelling in docs and docstrings
+    "bikeshed!" ["bikeshed" "-v" "-m" "120"] ; code check with max line length warning of 120 characters
     "ancient" ["with-profile" "dev" "do" "ancient" ":allow-qualified," "ancient" ":plugins" ":allow-qualified"] ; check for out of date dependencies
   }
 
