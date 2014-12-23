@@ -155,14 +155,14 @@
           (assoc updated-context term (assoc term-definition "@id" iri-mapping))))))
 
   ;; 14) Otherwise if the term contains a colon (:): 
-  ([updated-context term-value :guard #(re-find #":" (first %)) local-context defined]
+  ; ([updated-context term-value :guard #(re-find #":" (first %)) local-context defined]
 
-    ;; 14.1 If term is a compact IRI with a prefix that is a key in local context a dependency has been found.
-    ;; Use this algorithm recursively passing active context, local context, the prefix as term, and defined.
-    ;; 14.2 If term's prefix has a term definition in active context, set the IRI mapping of definition to the result of concatenating
-    ;; the value associated with the prefix's IRI mapping and the term's suffix.
-    ;; 14.3 Otherwise, term is an absolute IRI or blank node identifier. Set the IRI mapping of definition to term.
-    updated-context)
+  ;   ;; 14.1 If term is a compact IRI with a prefix that is a key in local context a dependency has been found.
+  ;   ;; Use this algorithm recursively passing active context, local context, the prefix as term, and defined.
+  ;   ;; 14.2 If term's prefix has a term definition in active context, set the IRI mapping of definition to the result of concatenating
+  ;   ;; the value associated with the prefix's IRI mapping and the term's suffix.
+  ;   ;; 14.3 Otherwise, term is an absolute IRI or blank node identifier. Set the IRI mapping of definition to term.
+  ;   updated-context)
 
   ;; 15) Otherwise, ...
   ([updated-context term-value _ _]

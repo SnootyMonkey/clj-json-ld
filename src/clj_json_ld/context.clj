@@ -16,11 +16,11 @@
 (defun- process-base-key 
 
   ; currently being processed context IS a remote context, so do nothing
-  ([result context remote-contexts :guard #(not (empty? %))]
+  ([result _ remote-contexts :guard #(not (empty? %))]
     result) 
 
   ; currently being processed context has a @base key
-  ([result context :guard #(contains? % "@base") remote-contexts]
+  ([result context :guard #(contains? % "@base") _]
     
     ;; 3.4.1) Initialize value to the value associated with the @base key.
     (let [value (get context "@base")]
@@ -147,7 +147,7 @@
 
   ;; stop condition of the recursion; return the accumulated result of merging with the local
   ;; context(s) as the new active context
-  ([result active-context local-context :guard #(empty? %) remote-contexts]
+  ([result _ local-context :guard #(empty? %) _]
     result)
 
   ([result active-context local-context remote-contexts]
