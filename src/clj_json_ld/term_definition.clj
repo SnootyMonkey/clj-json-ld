@@ -10,11 +10,11 @@
             [defun :refer (defun defun-)]
             [clj-json-ld.json-ld :as json-ld]
             [clj-json-ld.json-ld-error :refer (json-ld-error)]
-            [clj-json-ld.iri :refer (expand-iri blank-node-identifier? absolute-iri?)]))
+            [clj-json-ld.iri :refer (expand-iri blank-node-identifier? absolute-iri? compact-iri?)]))
 
 (defun- handle-type
   ;; 10) If value contains the key @type:
-  ([updated-context term value :guard #(contains? % "@type") local-context defined]
+  ([active-context term value :guard #(contains? % "@type") local-context defined]
 
     ;; 10.1) Initialize type to the value associated with the @type key...
     (let [type (get value "@type")]
@@ -27,7 +27,7 @@
 
       ;; 10.2) Set type to the result of using the IRI Expansion algorithm, passing active context, type for value,
       ;; true for vocab, false for document relative, local context, and defined....
-      (let [expanded-type (expand-iri updated-context type {
+      (let [expanded-type (expand-iri active-context type {
                             :vocab true
                             :document-relative false
                             :local-context local-context
@@ -38,12 +38,12 @@
           (json-ld-error "invalid type mapping" (str "@type of term " term " in the local context is not valid.")))
 
         ;; 10.3) Set the type mapping for definition to type.
-        (let [term-definition (or (get updated-context term) {})]
-          (assoc updated-context term (assoc term-definition "@type" expanded-type))))))
+        (let [term-definition (or (get active-context term) {})]
+          (assoc active-context term (assoc term-definition "@type" expanded-type))))))
 
-  ; updated-context has no @type key, so do nothing
-  ([updated-context _ _ _ _]
-    updated-context))
+  ; active-context has no @type key, so do nothing
+  ([active-context _ _ _ _]
+    active-context))
 
 (defun- add-optional-container
   "Add the value of @container in the term to the term definition map, with the key @container"
@@ -53,7 +53,7 @@
 
 (defun- handle-reverse
   ;; 11) If value contains the key @reverse:
-  ([updated-context term value :guard #(contains? % "@reverse") local-context defined]
+  ([active-context term value :guard #(contains? % "@reverse") local-context defined]
 
     ;; 11.1) If value contains an @id member, an invalid reverse property error has been detected and processing
     ;; is aborted.
@@ -69,7 +69,7 @@
       ;; 11.3) Otherwise, set the IRI mapping of definition to the result of using the IRI Expansion algorithm,
       ;; passing active context, the value associated with the @reverse key for value, true for vocab, false for
       ;; document relative, local context, and defined. ...
-      (let [expanded-reverse (expand-iri updated-context reverse-value {
+      (let [expanded-reverse (expand-iri active-context reverse-value {
                             :vocab true
                             :document-relative false
                             :local-context local-context
@@ -93,15 +93,15 @@
         ;; 11.5) Set the reverse property flag of definition to true.
         ;; 11.6) Set the term definition of term in active context to definition and the value associated with
         ;; defined's key term to true and return.
-        (let [term-definition (or (get updated-context term) {})]
-          (assoc updated-context term
+        (let [term-definition (or (get active-context term) {})]
+          (assoc active-context term
             (add-optional-container value
               (-> term-definition
                 (assoc "@reverse" expanded-reverse)
                 (assoc :reverse true))))))))
 
-  ; updated-context has no @reverse key, so do nothing
-  ([updated-context _ _ _ _] updated-context))
+  ; active-context has no @reverse key, so do nothing
+  ([active-context _ _ _ _] active-context))
 
 (defn- match-13?
   "
@@ -115,11 +115,12 @@
         id-value (get value "@id")]
     (and id? (not (= id-value term)))))
 
+(declare create-term-definition)
 (defun- handle-iri-mapping
   "Potential match for each mutually exclusive case of IRI mapping: 13, 14 and 15."
 
   ;; 13) If value contains the key @id and its value does not equal term:
-  ([updated-context term-value :guard match-13? local-context defined]
+  ([active-context term-value :guard match-13? local-context defined]
 
     ;; 13.1) If the value associated with the @id key is not a string, an invalid IRI mapping error has been
     ;; detected and processing is aborted.
@@ -132,7 +133,7 @@
       ;; 13.2) Otherwise, set the IRI mapping of definition to the result of using the IRI Expansion algorithm,
       ;; passing active context, the value associated with the @id key for value, true for vocab, false for document
       ;; relative, local context, and defined. ...
-      (let [iri-mapping (expand-iri updated-context id-value {
+      (let [iri-mapping (expand-iri active-context id-value {
                             :vocab true
                             :document-relative false
                             :local-context local-context
@@ -153,33 +154,52 @@
           (json-ld-error "invalid keyword alias" (str "The value of @id for term " term " cannot be @context.")))
 
         ;; set the IRI mapping of definition to the result of using the IRI Expansion algorithm
-        (let [term-definition (or (get updated-context term) {})]
-          (assoc updated-context term (assoc term-definition "@id" iri-mapping))))))
+        (let [term-definition (or (get active-context term) {})]
+          (assoc active-context term (assoc term-definition "@id" iri-mapping))))))
 
   ;; 14) Otherwise if the term contains a colon (:):
-  ; ([updated-context term-value :guard #(re-find #":" (first %)) local-context defined]
+  ([active-context term-value :guard #(re-find #":" (first %)) local-context defined]
 
-  ;   ;; 14.1 If term is a compact IRI with a prefix that is a key in local context a dependency has been found.
-  ;   ;; Use this algorithm recursively passing active context, local context, the prefix as term, and defined.
-  ;   ;; 14.2 If term's prefix has a term definition in active context, set the IRI mapping of definition to the
-  ;   ;; result of concatenating the value associated with the prefix's IRI mapping and the term's suffix.
-  ;   ;; 14.3 Otherwise, term is an absolute IRI or blank node identifier. Set the IRI mapping of definition to term.
-  ;   updated-context)
+    (let [term (first term-value)
+          term-parts (s/split term #":")
+          term-prefix (first term-parts)
+          term-suffix (last term-parts)
+          updated-context ; either the updated active-context result of recursing or the original active context
+            ;; 14.1 If term is a compact IRI with a prefix that is a key in local context...
+            (if (and (compact-iri? term) (contains? local-context term-prefix))
+              ;; ...a dependency has been found. Use this algorithm recursively passing active context, local context,
+              ;; the prefix as term, and defined.
+              ;; Also... 2) Set the value associated with defined's term key to false. This indicates that the term
+              ;; definition is now being created but is not yet complete.
+              (do (print "recurse!" term-prefix)
+              (first (create-term-definition active-context local-context term-prefix (assoc defined term false))))
+              active-context)]
+
+      ;; 14.2 If term's prefix has a term definition in active context,...
+      (if (contains? updated-context term-prefix)
+        ;; ...set the IRI mapping of definition to the result of concatenating the value
+        ;; associated with the prefix's IRI mapping and the term's suffix.
+        (let [term-definition (or (get updated-context term) {})
+              iri-mapping (str (get-in updated-context [term-prefix "@id"]) term-suffix)]
+          (assoc updated-context term (assoc term-definition "@id" iri-mapping)))
+        ;; 14.3 Otherwise, term is an absolute IRI or blank node identifier. Set the IRI mapping of definition to term.
+        (let [term-definition (or (get updated-context term) {})]
+          (assoc updated-context term (assoc term-definition "@id" term))))))
 
   ;; 15) Otherwise, ...
-  ([updated-context term-value _ _]
+  ([active-context term-value _ _]
     ;; ... if active context has a vocabulary mapping, the IRI mapping of definition is set to the result of
     ;; concatenating the value associated with the vocabulary mapping and term. If it does not have a vocabulary
     ;; mapping, an invalid IRI mapping error been detected and processing is aborted.
-    (if-let [vocabulary-mapping (get updated-context "@vocab")]
+    (if-let [vocabulary-mapping (get active-context "@vocab")]
         (let [term (first term-value)
-              term-definition (or (get updated-context term) {})]
-          (assoc updated-context term (assoc term-definition "@id" (str vocabulary-mapping term))))
+              term-definition (or (get active-context term) {})]
+          (assoc active-context term (assoc term-definition "@id" (str vocabulary-mapping term))))
         (json-ld-error "invalid IRI mapping" (str "There is no vocabulary mapping for the term " (first term-value))))))
 
 (defun- handle-container
   ;; 16) If value contains the key @container:
-  ([updated-context term value :guard #(contains? % "@container")]
+  ([active-context term value :guard #(contains? % "@container")]
 
     ;; 16.1) Initialize container to the value associated with the @container key, ...
     (let [container-value (get value "@container")]
@@ -190,15 +210,15 @@
           (str "The value of @container for term " term " was not @list, @set, @index or @language.")))
 
       ;; 16.2) Set the container mapping of definition to container.
-      (let [term-definition (or (get updated-context term) {})]
-        (assoc updated-context term (assoc term-definition "@container" container-value)))))
+      (let [term-definition (or (get active-context term) {})]
+        (assoc active-context term (assoc term-definition "@container" container-value)))))
 
-  ; updated-context has no @container key, so do nothing
-  ([updated-context _ _] updated-context))
+  ; active-context has no @container key, so do nothing
+  ([active-context _ _] active-context))
 
 (defun- handle-language
   ;; 17) If value contains the key @language and does not contain the key @type:
-  ([updated-context term value :guard #(and (contains? % "@language") (not (contains? % "@type")))]
+  ([active-context term value :guard #(and (contains? % "@language") (not (contains? % "@type")))]
 
     ;; 17.1) Initialize language to the value associated with the @language key, which must be either null or
     ;; a string. Otherwise, an invalid language mapping error has been detected and processing is aborted.
@@ -208,12 +228,12 @@
 
         ;; 17.2) If language is a string set it to lowercased language.
         ;; Set the language mapping of definition to language.
-        (let [term-definition (or (get updated-context term) {})]
-          (assoc updated-context term
+        (let [term-definition (or (get active-context term) {})]
+          (assoc active-context term
             (assoc term-definition "@language" (if language (s/lower-case language) nil))))))
 
-  ; updated-context has no @language key, so do nothing
-  ([updated-context _ _] updated-context))
+  ; active-context has no @language key, so do nothing
+  ([active-context _ _] active-context))
 
 (defn- new-term-definition
   "
@@ -305,9 +325,6 @@
 
           )
         )
-      ;; 2) Set the value associated with defined's term key to false.
-      ;; This indicates that the term definition is now being created but is not yet complete.
-      ;; 14.1 recurses back into this algorithm
 
       ;;18) Set the term definition of term in active context to definition and set the value
       ;; associated with defined's key term to true.

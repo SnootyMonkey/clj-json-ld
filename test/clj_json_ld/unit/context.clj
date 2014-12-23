@@ -262,9 +262,35 @@
               (throws clojure.lang.ExceptionInfo)))
 
       ;; 14.x
-      (future-facts "when term has an @id that is the term and it contains a colon")
+      (facts "when term has an @id that is the term and it contains a colon"
 
-      ;; 15.x
+        ;; 14.1 
+        (fact "and the term's prefix has a term definition in the local context"
+          (update-with-local-context active-context {"a:bar" {"@id" "a:bar"}
+                                                     "a" {"@id" "http://foo.com/"}}) =>
+            (-> active-context 
+              (assoc "a" {"@id" "http://foo.com/"})
+              (assoc "a:bar" {"@id" "http://foo.com/bar"})))
+
+        ;; 1 cyclic iri mapping
+        ;; TODO not able to set one of these up yet, and pretty sure we aren't handling it properly
+        ;; How is this triggered by spec test error 10
+        ; (fact "and the term's prefix has a term definition in the local context"
+        ;   (update-with-local-context active-context {"a" {"@id" "a:a"}}) =>
+        ;     (throws clojure.lang.ExceptionInfo))
+
+        ;; 14.2
+        (fact "and the term's prefix has a term definition in active context"
+          (let [active-context-with-term-definition (assoc active-context "foo" {"@id" "http://foo.com/"})]
+            (update-with-local-context active-context-with-term-definition {"foo:bar" {"@id" "foo:bar"}}) =>
+              (assoc active-context-with-term-definition "foo:bar" {"@id" "http://foo.com/bar"})))
+
+        ;; 14.3
+        (fact "and the term has no term definition in the active context"
+          (update-with-local-context active-context {"foo:bar" {"@id" "foo:bar"}}) =>
+            (assoc active-context "foo:bar" {"@id" "foo:bar"})))
+
+      ;; 15
       (facts "when term has an @id that is the term and it doesn't contain a colon"
 
         (fact "and the term has a vocabulary mapping"

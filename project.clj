@@ -62,8 +62,10 @@
   :eastwood {
     ;; Enable some linters that are disabled by default
     :add-linters [:unused-namespaces :unused-private-vars]
+    
     ;; More extensive lintering that will have a few false positives
     ;; :add-linters [:unused-namespaces :unused-private-vars :unused-locals :unused-fn-args]
+    
     ;; Exclude testing namespaces
     :tests-paths ["test"]
     :exclude-namespaces [:test-paths]

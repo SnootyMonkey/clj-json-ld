@@ -136,5 +136,26 @@
   [identifier]
   (if (and (string? identifier) (re-find #"^_:" identifier)) true false))
 
+(defn compact-iri?
+  "
+  Return a boolean to indicate if the string argument is a compact IRI or not.
+  http://www.w3.org/TR/json-ld-api/#dfn-compact-iri
+  "
+  [string]
+  (let [parts (split string #":")
+        prefix (first parts)
+        suffix (last parts)]
+    (and 
+      ; have 1 and only 1 colon
+      (= (count parts) 2)
+      ; not a blank node identifier
+      (not (blank-node-identifier? string))
+      ; have a prefix and suffix that don't have whitespace
+      (not (re-find #"\s" prefix))
+      (not (re-find #"\s" suffix))
+      ; neither the prefix nor the suffix is blank
+      (not (blank? prefix))
+      (not (blank? suffix)))))
+
 ;; http://www.w3.org/TR/json-ld-api/#iri-compaction
 ;; compact

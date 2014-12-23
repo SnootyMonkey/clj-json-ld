@@ -6,7 +6,7 @@
   "
   (:require [midje.sweet :refer :all]
             [clj-json-ld.json-ld :as json-ld]
-            [clj-json-ld.iri :refer (expand-iri blank-node-identifier?)]))
+            [clj-json-ld.iri :refer (expand-iri blank-node-identifier? compact-iri?)]))
 
 (def context {
   "@base" "http://base/"
@@ -33,6 +33,25 @@
     (blank-node-identifier? "http://cnn.com/") => false
     (blank-node-identifier? "http://cnn.com/foo_:") => false
     (blank-node-identifier? "http_://cnn.com/foo") => false))
+
+(facts "about compact IRIs"
+
+  (facts "we can detect them"
+    (compact-iri? "foo:bar") => true
+    (compact-iri? "f:b") => true
+    (compact-iri? "f-o-o:b") => true
+    (compact-iri? "f:b-a-r") => true)
+
+  (facts "we aren't fooled by fake ones"
+    (compact-iri? "_:") => false
+    (compact-iri? "_:foo") => false
+    (compact-iri? "foobar") => false
+    (compact-iri? "foo:bar:blat") => false
+    (compact-iri? "foo:bar:blat:bloo") => false
+    (compact-iri? "foo foo:bar") => false
+    (compact-iri? "foo:bar bar") => false
+    (compact-iri? "foo:") => false
+    (compact-iri? ":bar") => false))
 
 (facts "about IRI expansion"
 
