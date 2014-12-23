@@ -15,7 +15,7 @@
     ;; Possible variations:
     ;; input - JSON, map, remote file
     ;; output - JSON, map
-    
+
     ;; Combinatorial: 3 x 2 = 6 total cases
 
     ;; 1,"JSON","JSON"

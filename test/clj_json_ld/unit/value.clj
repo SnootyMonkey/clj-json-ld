@@ -40,7 +40,7 @@
 
     (fact "no prefix"
       (expand-value context "foo" "ex:suffix") => {"@value" "ex:suffix"})
-    
+
     (fact "integer"
       (expand-value context  "foaf:age" "54") => {"@value" "54" "@type" "xsd:integer"})
 
@@ -80,7 +80,7 @@
       (expand-value context "foaf:knows"  "ex:suffix") => {"@id" "http://example.org/suffix"})
 
     (fact "no IRI"
-      (expand-value en-context "foo" "http://example.com/") => 
+      (expand-value en-context "foo" "http://example.com/") =>
         {"@value" "http://example.com/" "@language" "en"})
 
       (fact "no term"
@@ -103,7 +103,7 @@
     (doseq [active-context [context en-context]]
 
       (fact "no IRI"
-        (expand-value active-context "ja-lang-ex" "http://example.com/") => 
+        (expand-value active-context "ja-lang-ex" "http://example.com/") =>
           {"@value" "http://example.com/" "@language" "ja"})
 
       (fact "no term"
@@ -153,7 +153,7 @@
     (fact "string-boolean"
       (expand-value en-context "ex:boolean" "foo") => {"@value" "foo" "@type" "xsd:boolean"})
 
-    (fact "string-double" 
+    (fact "string-double"
       (expand-value en-context "ex:double" "foo") => {"@value" "foo" "@type" "xsd:double"})
 
     (fact "string-integer"

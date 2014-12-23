@@ -35,7 +35,7 @@
     (blank-node-identifier? "http_://cnn.com/foo") => false))
 
 (facts "about IRI expansion"
- 
+
   (facts "with no options"
 
     (facts "absolute IRI"
@@ -61,7 +61,7 @@
 
     (fact "empty term"
       (expand-iri context "") => "")
-    
+
     (fact "blank node"
       (expand-iri context "_:t0") => "_:t0")
 

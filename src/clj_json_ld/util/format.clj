@@ -3,10 +3,10 @@
 
 (defn ingest-input
   ""
-  [input options] 
+  [input options]
   ;; Parse the JSON if need be
   (if (map? input) input (parse-string input)))
- 
+
 (defn format-output
   ""
   [json options]

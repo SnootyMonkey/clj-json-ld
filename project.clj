@@ -64,6 +64,7 @@
     :add-linters [:unused-namespaces :unused-private-vars]
     ;; More extensive lintering that will have a few false positives
     ;; :add-linters [:unused-namespaces :unused-private-vars :unused-locals :unused-fn-args]
+    ;; Exculed testing namespaces
     :exclude-namespaces [
       clj-json-ld.unit.context
       clj-json-ld.unit.iri

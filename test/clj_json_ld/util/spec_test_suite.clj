@@ -7,7 +7,7 @@
 (def possible-spec-dirs ["../json-ld-tests/" "../tests/" "./json-ld-tests/" "./tests/"])
 (def tests-location (first (filter #(.isDirectory (io/file %)) possible-spec-dirs)))
 
-(defn- load-manifest 
+(defn- load-manifest
   "Given a manifest file name, load it from the tests dir"
   [manifest-file]
   (parse-stream (clojure.java.io/reader (str tests-location manifest-file))))

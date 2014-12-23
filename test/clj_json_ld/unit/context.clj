@@ -61,24 +61,24 @@
       (update-with-local-context active-context [{:blat "bloo"} nil]) => {}))
 
   (future-facts "about local contexts as remote strings")
-        
+
   (facts "about @base in local contexts"
 
     (facts "@base of nil removes the @base"
       (update-with-local-context active-context {"@base" nil}) => (dissoc active-context "@base"))
 
     (facts "@base of an absolute IRI makes the IRI the @base"
-      
+
       (doseq [local-context [
-                {"@base" falklandsophile-iri}     
-                [{} {"@base" falklandsophile-iri}]   
+                {"@base" falklandsophile-iri}
+                [{} {"@base" falklandsophile-iri}]
                 [{"@base" falklandsophile-iri} {}]
                 [{"@base" snootymonkey-iri} {"@base" falklandsophile-iri} {}]
                 [{"@base" snootymonkey-iri} {"@base" fcms-iri} {} {"@base" nil} {"@base" falklandsophile-iri}]
               ]]
         (update-with-local-context active-context local-context) =>
           (assoc active-context "@base" falklandsophile-iri)))
-      
+
     (facts "@base of an relative IRI merges with the @base of the active-context"
 
       (update-with-local-context active-context {"@base" "foo/bar"}) =>
@@ -92,7 +92,7 @@
 
     (facts "@base of a relative IRI without an @base in the active-context is an invalid base IRI error"
 
-      (doseq [local-context (concat 
+      (doseq [local-context (concat
               (map #(hash-map "@base" %) not-strings)
               [
                 {"@base" "foo/bar"}
@@ -161,13 +161,13 @@
           (assoc active-context "@language" language))
 
       (fact "@language string is lower-cased to makes the @language"
-        (update-with-local-context active-context {"@language" another-language}) => 
+        (update-with-local-context active-context {"@language" another-language}) =>
           (assoc active-context "@language" (s/lower-case another-language))))
 
     (facts "@language of any non-string invalid default language"
       (doseq [value not-strings]
         (update-with-local-context {} {"@language" value}) => (throws clojure.lang.ExceptionInfo))))
-  
+
   (facts "about additional terms in local contexts"
 
     (facts "a term defined as nil in the local context is nil in the active context"
@@ -188,7 +188,7 @@
     (facts "a term defined as anything but a string or a JSON object is an invalid term definition"
       (doseq [value (remove not-strings {})]
         (update-with-local-context active-context {"@foo" value}) => (throws clojure.lang.ExceptionInfo)))
-  
+
     (facts "about @type values in a defined term"
 
       (facts "a term defined with a valid @type mapping adds the term and the @type mapping to the active context"
@@ -216,8 +216,8 @@
         (doseq [container-value ["@index", "@set"]]
           (update-with-local-context active-context {"foo" {"@reverse" fcms-iri "@container" container-value}}) =>
             (assoc active-context "foo" {
-              :reverse true 
-              "@reverse" fcms-iri 
+              :reverse true
+              "@reverse" fcms-iri
               "@container" container-value
               "@id" "http://vocab.com/foo"})))
 
@@ -228,7 +228,7 @@
         (doseq [container-value (concat not-strings ["foo" "@id"])]
           (update-with-local-context active-context {"foo" {"@reverse" "foo" "@container" container-value}}) =>
             (throws clojure.lang.ExceptionInfo)))
-      
+
       (fact "a term defined with an @reverse value that's not a string is an invalid IRI mapping"
         (doseq [value not-strings]
           (update-with-local-context active-context {"foo" {"@reverse" value}}) => (throws clojure.lang.ExceptionInfo))))

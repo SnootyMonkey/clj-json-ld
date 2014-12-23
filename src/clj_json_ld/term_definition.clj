@@ -12,18 +12,19 @@
             [clj-json-ld.json-ld-error :refer (json-ld-error)]
             [clj-json-ld.iri :refer (expand-iri blank-node-identifier? absolute-iri?)]))
 
-(defun- handle-type 
+(defun- handle-type
   ;; 10) If value contains the key @type:
   ([updated-context term value :guard #(contains? % "@type") local-context defined]
 
     ;; 10.1) Initialize type to the value associated with the @type key...
     (let [type (get value "@type")]
-      
+
       ;; ... which must be a string. Otherwise, an invalid type mapping error has been detected and processing is
       ;; aborted.
       (if-not (string? type)
-        (json-ld-error "invalid type mapping error" (str "@type of term " term " in the local context is not a string.")))
-      
+        (json-ld-error "invalid type mapping error"
+          (str "@type of term " term " in the local context is not a string.")))
+
       ;; 10.2) Set type to the result of using the IRI Expansion algorithm, passing active context, type for value,
       ;; true for vocab, false for document relative, local context, and defined....
       (let [expanded-type (expand-iri updated-context type {
@@ -41,7 +42,7 @@
           (assoc updated-context term (assoc term-definition "@type" expanded-type))))))
 
   ; updated-context has no @type key, so do nothing
-  ([updated-context _ _ _ _] 
+  ([updated-context _ _ _ _]
     updated-context))
 
 (defun- add-optional-container
@@ -57,7 +58,7 @@
     ;; 11.1) If value contains an @id member, an invalid reverse property error has been detected and processing
     ;; is aborted.
     (if (contains? value "@id") (json-ld-error "invalid reverse property" (str term " contains both @reverse and @id")))
-    
+
     (let [reverse-value (get value "@reverse")]
 
       ;; 11.2) If the value associated with the @reverse key is not a string, an invalid IRI mapping error has been
@@ -78,14 +79,15 @@
         (if-not (or (absolute-iri? expanded-reverse) (blank-node-identifier? expanded-reverse))
           (json-ld-error "invalid IRI mapping error"
             (str "The value of @reverse for term " term " is not a absolute IRI or a blank node identifier.")))
-    
+
         ;; 11.4) If value contains an @container member, ... if its value is neither @set, nor @index, nor null,
         ;; an invalid reverse property error has been detected (reverse properties only support set- and
         ;; index-containers) and processing is aborted.
-        (if (contains? value "@container") 
+        (if (contains? value "@container")
           (let [container-value (get value "@container")]
             (if-not (or (= container-value "@set") (= container-value "@index") (= container-value nil))
-              (json-ld-error "invalid reverse property" (str "The value of @container for term " term " was not @set, @index or null.")))))
+              (json-ld-error "invalid reverse property"
+                (str "The value of @container for term " term " was not @set, @index or null.")))))
 
         ;; 11.4) If value contains an @container member, set the container mapping of definition to its value
         ;; 11.5) Set the reverse property flag of definition to true.
@@ -115,10 +117,10 @@
 
 (defun- handle-iri-mapping
   "Potential match for each mutually exclusive case of IRI mapping: 13, 14 and 15."
-  
+
   ;; 13) If value contains the key @id and its value does not equal term:
   ([updated-context term-value :guard match-13? local-context defined]
-    
+
     ;; 13.1) If the value associated with the @id key is not a string, an invalid IRI mapping error has been
     ;; detected and processing is aborted.
     (let [term (first term-value)
@@ -126,7 +128,7 @@
           id-value (get value "@id")]
       (if-not (string? id-value)
         (json-ld-error "invalid IRI mapping" (str "The value of @id for term " term " was not a string.")))
-    
+
       ;; 13.2) Otherwise, set the IRI mapping of definition to the result of using the IRI Expansion algorithm,
       ;; passing active context, the value associated with the @id key for value, true for vocab, false for document
       ;; relative, local context, and defined. ...
@@ -139,13 +141,13 @@
         ;; ... If the resulting (expanded) IRI mapping is neither a keyword, nor an absolute IRI,
         ;; nor a blank node identifier, an invalid IRI mapping error has been detected
         ;; and processing is aborted; ...
-        (if-not (or 
+        (if-not (or
                   (contains? json-ld/keywords iri-mapping)
                   (absolute-iri? iri-mapping)
                   (blank-node-identifier? iri-mapping))
           (json-ld-error "invalid IRI mapping"
             (str "The value of @id for term " term " was not a JSON-LD keyword, an absolute IRI, or a blank node identifier.")))
-        
+
         ;; ... if it equals @context, an invalid keyword alias error has been detected and processing is aborted.
         (if (= iri-mapping "@context")
           (json-ld-error "invalid keyword alias" (str "The value of @id for term " term " cannot be @context.")))
@@ -154,21 +156,21 @@
         (let [term-definition (or (get updated-context term) {})]
           (assoc updated-context term (assoc term-definition "@id" iri-mapping))))))
 
-  ;; 14) Otherwise if the term contains a colon (:): 
+  ;; 14) Otherwise if the term contains a colon (:):
   ; ([updated-context term-value :guard #(re-find #":" (first %)) local-context defined]
 
   ;   ;; 14.1 If term is a compact IRI with a prefix that is a key in local context a dependency has been found.
   ;   ;; Use this algorithm recursively passing active context, local context, the prefix as term, and defined.
-  ;   ;; 14.2 If term's prefix has a term definition in active context, set the IRI mapping of definition to the result of concatenating
-  ;   ;; the value associated with the prefix's IRI mapping and the term's suffix.
+  ;   ;; 14.2 If term's prefix has a term definition in active context, set the IRI mapping of definition to the
+  ;   ;; result of concatenating the value associated with the prefix's IRI mapping and the term's suffix.
   ;   ;; 14.3 Otherwise, term is an absolute IRI or blank node identifier. Set the IRI mapping of definition to term.
   ;   updated-context)
 
   ;; 15) Otherwise, ...
   ([updated-context term-value _ _]
-    ;; ... if active context has a vocabulary mapping, the IRI mapping of definition is set to the result of concatenating the
-    ;; value associated with the vocabulary mapping and term. If it does not have a vocabulary mapping, an invalid IRI mapping error been
-    ;; detected and processing is aborted.
+    ;; ... if active context has a vocabulary mapping, the IRI mapping of definition is set to the result of
+    ;; concatenating the value associated with the vocabulary mapping and term. If it does not have a vocabulary
+    ;; mapping, an invalid IRI mapping error been detected and processing is aborted.
     (if-let [vocabulary-mapping (get updated-context "@vocab")]
         (let [term (first term-value)
               term-definition (or (get updated-context term) {})]
@@ -176,7 +178,7 @@
         (json-ld-error "invalid IRI mapping" (str "There is no vocabulary mapping for the term " (first term-value))))))
 
 (defun- handle-container
-  ;; 16) If value contains the key @container: 
+  ;; 16) If value contains the key @container:
   ([updated-context term value :guard #(contains? % "@container")]
 
     ;; 16.1) Initialize container to the value associated with the @container key, ...
@@ -184,8 +186,9 @@
       ;; ... which must be either @list, @set, @index, or @language. Otherwise, an
       ;; invalid container mapping error has been detected and processing is aborted.
       (if-not (contains? #{"@list" "@set" "@index" "@language"} container-value)
-        (json-ld-error "invalid container mapping" (str "The value of @container for term " term " was not @list, @set, @index or @language.")))
-  
+        (json-ld-error "invalid container mapping"
+          (str "The value of @container for term " term " was not @list, @set, @index or @language.")))
+
       ;; 16.2) Set the container mapping of definition to container.
       (let [term-definition (or (get updated-context term) {})]
         (assoc updated-context term (assoc term-definition "@container" container-value)))))
@@ -194,15 +197,15 @@
   ([updated-context _ _] updated-context))
 
 (defun- handle-language
-  ;; 17) If value contains the key @language and does not contain the key @type: 
+  ;; 17) If value contains the key @language and does not contain the key @type:
   ([updated-context term value :guard #(and (contains? % "@language") (not (contains? % "@type")))]
-    
+
     ;; 17.1) Initialize language to the value associated with the @language key, which must be either null or
     ;; a string. Otherwise, an invalid language mapping error has been detected and processing is aborted.
     (let [language (get value "@language")]
       (if-not (or (string? language) (nil? language))
         (json-ld-error "invalid language mapping" (str "The value of @language for term " term " was not a string or null.")))
-  
+
         ;; 17.2) If language is a string set it to lowercased language.
         ;; Set the language mapping of definition to language.
         (let [term-definition (or (get updated-context term) {})]
@@ -219,17 +222,17 @@
   [active-context local-context term defined]
 
   (let [value (get local-context term)
-        updated-context 
+        updated-context
           (-> active-context
-            ;; 10) If value contains the key @type: 
+            ;; 10) If value contains the key @type:
             (handle-type term value local-context defined)
             ;; 11) If value contains the key @reverse:
-            (handle-reverse term value local-context defined)    
+            (handle-reverse term value local-context defined)
             ;; 13) - 14) - 15)
             (handle-iri-mapping [term value] local-context defined)
-            ;; 16) If value contains the key @container: 
+            ;; 16) If value contains the key @container:
             (handle-container term value)
-            ;; 17) If value contains the key @language and does not contain the key @type: 
+            ;; 17) If value contains the key @language and does not contain the key @type:
             (handle-language term value))]
     ;; Return a tuple of the updated context and the defined map with the term marked as defined
     [updated-context (assoc defined term true)]))
@@ -242,27 +245,27 @@
   active context for a term being processed in a local context.
   "
   [active-context local-context term defined]
-  
+
   ;; 1) If defined contains the key term and the associated value is true
   ;; (indicating that the term definition has already been created), return.
   ;; Otherwise, if the value is false, a cyclic IRI mapping error has been detected
   ;; and processing is aborted.
   (let [defined-marker (get defined term)]
     (match [defined-marker] ; true, false or nil
-      
+
       ; the term has already been created, so just return the result tuple
       [true] [active-context defined]
-      
+
       ;; the term is in the process of being created, this is cyclical, oh noes!
       [false] (json-ld-error "cyclic IRI mapping"
             (str "local context has a term " term " that is used in its own definition"))
-      
+
       ;; The term is not yet defined, so proceed to steps 2-18 of the algorithm
       [_] (do
 
         ;; 3) Since keywords cannot be overridden, the term must not be a keyword. Otherwise, a
         ;; keyword redefinition error has been detected and processing is aborted.
-        (if (json-ld/keywords term) 
+        (if (json-ld/keywords term)
           (json-ld-error "keyword redefinition"
             (str term " is a keyword and can't be used in a local context")))
 
@@ -277,16 +280,16 @@
             ;; the term definition in active context to null, set the value associated with defined's key
             ;; term to true, and return.
             ;; TODO revisit and simplify this logic
-            [value :guard #(or 
+            [value :guard #(or
                               (nil? %)
                               (and
                                 (map? %)
-                                (and 
+                                (and
                                   (contains? % "@id")
                                   (= (get % "@id") nil))))]
               ; return the result tuple with the term as nil
               [(assoc updated-context term nil) (assoc defined term true)]
-  
+
             ;; 7) Otherwise, if value is a string, convert it to a JSON object consisting of a
             ;; single member whose key is @id and whose value is value.
             [value :guard string?] [(assoc updated-context term {"@id" value}) (assoc defined term true)]
@@ -305,9 +308,9 @@
       ;; 2) Set the value associated with defined's term key to false.
       ;; This indicates that the term definition is now being created but is not yet complete.
       ;; 14.1 recurses back into this algorithm
-      
+
       ;;18) Set the term definition of term in active context to definition and set the value
-      ;; associated with defined's key term to true.      
+      ;; associated with defined's key term to true.
       )
     )
   )

@@ -17,7 +17,7 @@
     ;; input - JSON, map, remote file
     ;; context - JSON, map, remote file
     ;; output - JSON, map
-    
+
     ;; Combinatorial: 3 x 3 x 2 = 18 total cases
 
     ;; Optimal pairwise test set of 9:

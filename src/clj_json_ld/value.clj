@@ -9,7 +9,7 @@
   (:require [defun :refer (defun-)]
             [clj-json-ld.iri :refer (expand-iri)]))
 
-(defn- property-type-mapping 
+(defn- property-type-mapping
   "If active property has a type mapping in active context, return it if it's not @id."
   [active-context active-property]
   (let [type-mapping (get-in active-context [active-property "@type"])]
@@ -37,16 +37,16 @@
   ;; Otherwise, there is no language mapping for you! Good luck guessing the language sucker!
   ([args] (:value-map args)))
 
-(defun- expand-it 
+(defun- expand-it
   ;; 1) If the active property has a type mapping in active context that is @id,
   ;; return a new JSON object containing a single key-value pair where the key is @id
   ;; and the value is the result of using the IRI Expansion algorithm, passing active
   ;; context, value, and true for document relative.
-  ([args :guard #(value-is-an-iri? %)] 
+  ([args :guard #(value-is-an-iri? %)]
     {"@id" (expand-iri (:active-context args) (:value args) {:document-relative true})})
 
   ;; 2) If active property has a type mapping in active context that is @vocab, return a new JSON object containing a single key-value pair where the key is @id and the value is the result of using the IRI Expansion algorithm, passing active context, value, true for vocab, and true for document relative.
-  
+
   ;; 3) Otherwise, initialize result to a JSON object with an @value member whose value is set to value.
   ([args] {"@value" (:value args)}))
 
@@ -67,7 +67,7 @@
   is language mapping associated with the active property.
 
   **active-context** - context map used to resolve terms
-  
+
   **active-property** - the property whose value is being expanded
 
   **value** - value to be expanded
@@ -78,11 +78,11 @@
                                                :active-property active-property
                                                :value value})
           type-mapping (property-type-mapping active-context active-property)]
-      
+
       ;; 4) If active property has a type mapping in active context [and it's not @id],
       ;; add an @type member to result and set its value to the value associated with the
       ;; type mapping.
-      (if type-mapping 
+      (if type-mapping
         (assoc partially-expanded-value "@type" type-mapping)
 
         ;; 5) Otherwise, if there is an @value, and it's a string, add the (optional)

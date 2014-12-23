@@ -3,7 +3,8 @@
   Implements the [Expansion](http://www.w3.org/TR/json-ld-api/#expansion),
   [Compaction](http://www.w3.org/TR/json-ld-api/#compaction),
   [Flattening](http://www.w3.org/TR/json-ld-api/#rdf-serialization-deserialization) and
-  [RDF Serialization/Deserialization](http://www.w3.org/TR/json-ld-api/#rdf-serialization-deserialization) operations as defined in the
+  [RDF Serialization/Deserialization](http://www.w3.org/TR/json-ld-api/#rdf-serialization-deserialization)
+  operations as defined in the
   [JSON-LD 1.0 Processing Algorithms and API specification](http://www.w3.org/TR/json-ld-api/)"
   (:refer-clojure :exclude [flatten])
   (:require [clj-json-ld.compact :refer (compact-it)]
@@ -19,8 +20,8 @@
   **input** - a JSON-LD document as a Unicode text string, or a
   [Map](http://clojure.org/data_structures#Data%20Structures-Maps%20%28IPersistentMap%29)
   representing a parsed JSON-LD document, or a string URL to a remote JSON-LD document.
-  
-  **options** *(optional)* - 
+
+  **options** *(optional)* -
 
   Returns an expanded JSON-LD document as a Unicode text string, or a
   [Map](http://clojure.org/data_structures#Data%20Structures-Maps%20%28IPersistentMap%29)
@@ -42,14 +43,14 @@
   **input** - a JSON-LD document as a Unicode text string, or a
   [Map](http://clojure.org/data_structures#Data%20Structures-Maps%20%28IPersistentMap%29)
   representing a parsed JSON-LD document, or a string URL to a remote JSON-LD document.
-  
+
   **context** *(optional)* - a JSON-LD context document as a Unicode text string, or a
   [Map](http://clojure.org/data_structures#Data%20Structures-Maps%20%28IPersistentMap%29)
   representing a parsed JSON-LD context document, or a string URL to a remote JSON-LD
   context document. If you want to provide `options` but not a `context`, pass in `nil`
   for the `context`.
-  
-  **options** *(optional)* - 
+
+  **options** *(optional)* -
 
   Returns a compacted a JSON-LD document as a Unicode text string, or a
   [Map](http://clojure.org/data_structures#Data%20Structures-Maps%20%28IPersistentMap%29)
@@ -69,14 +70,14 @@
   **input** - a JSON-LD document as a Unicode text string, or a
   [Map](http://clojure.org/data_structures#Data%20Structures-Maps%20%28IPersistentMap%29)
   representing a parsed JSON-LD document, or a string URL to a remote JSON-LD document.
-  
+
   **context** *(optional)* - a JSON-LD context document as a Unicode text string, or a
   [Map](http://clojure.org/data_structures#Data%20Structures-Maps%20%28IPersistentMap%29)
   representing a parsed JSON-LD context document, or a string URL to a remote JSON-LD
   context document. If you want to provide `options` but not a `context`, pass in `nil`
   for the `context`.
-  
-  **options** *(optional)* - 
+
+  **options** *(optional)* -
 
   Returns a flattened a JSON-LD document as a Unicode text string, or a
   [Map](http://clojure.org/data_structures#Data%20Structures-Maps%20%28IPersistentMap%29)
