@@ -26,5 +26,6 @@
   "Print output explaining the test case."
   [test-type test-case]
   (println (str "\n" test-type) "Test:" (:name test-case))
-  (println "Input:\n" (:input test-case))
+  (println (str "Purpose: " (:purpose test-case)))
+  (println "\nInput:\n" (:input test-case))
   (println "Expected:\n" (:expect test-case)))
