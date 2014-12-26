@@ -121,9 +121,9 @@
   ;; passing active context and the value of the @context key as local context.
   ([active-context active-property element :guard #(contains? % "@context")]
     (expansion 
-      (update-with-local-context active-context (get element "@context")
+      (update-with-local-context active-context (get element "@context"))
       active-property
-      (dissoc element "@context"))))
+      (dissoc element "@context")))
 
   ;; 4) Otherwise element is a JSON object.
   ([active-context active-property element]
