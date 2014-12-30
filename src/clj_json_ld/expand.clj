@@ -16,24 +16,46 @@
   7.3) If expanded property is null or it neither contains a colon (:) nor it is a keyword, drop key by
   continuing to the next key."
   [key]
-  (or (nil? key) (not (re-find #":" key)) (not (json-ld-keyword? key))))
+  (or
+    (nil? key)
+    (and
+      (not (re-find #":" key))
+      (not (json-ld-keyword? key)))))
 
-(defun- expand-key [active-context active-property expanded-property value]
+(defn- string-or-sequence-of-strings?
+  "true if the value is either a string or a sequence containing only strings."
+  [value]
+  (or (string? value) (and (sequential? value) (every? string? value))))
 
-  ;; 7.4) If expanded property is a keyword: 
-  ([active-context active-property expanded-property :guard json-ld-keyword? value]
-    ;; 7.4.1) If active property equals @reverse, an invalid reverse property map error has been detected and
-    ;; processing is aborted.
-    (if (= active-property "@reverse")
-      (json-ld-error "invalid reverse property map"
-        (str "The active property is @reverse and " expanded-property " is a JSON-LD keyword.")))
+(defun- expand-property
 
-    ;; 7.4.3) If expanded property is @id and value is not a string, an invalid @id value error has been detected
-    ;; and processing is aborted...
-    (if (and (= expanded-property "@id") (not (string? value)))
-      (json-ld-error "invalid @id" (str "The value " value " is not a vaid @id.")))
+  ;; 7.4.1) If active property equals @reverse, an invalid reverse property map error has been detected and
+  ;; processing is aborted.
+  ([active-context active-property :guard #(= % "@reverse") expanded-property-value :guard #(json-ld-keyword? (first %))]
+    (json-ld-error "invalid reverse property map"
+      (str "The active property is @reverse and " (first expanded-property-value) " is a JSON-LD keyword.")))
 
-    ;; 7.4.4) error
+  ;; 7.4.3) If expanded property is @id and value is not a string, an invalid @id value error has been detected
+  ;; and processing is aborted...
+  ([active-context active-property expanded-property-value :guard #(and (= (first %) "@id") (not (string? (last %))))]
+    (json-ld-error "invalid @id" (str "The value " (last expanded-property-value) " is not a vaid @id.")))
+  ;; ...Otherwise, set expanded value to the result of using the IRI Expansion algorithm, passing active context,
+  ;; value, and true for document relative.
+  ([active-context active-property expanded-property-value :guard #(= (first %) "@id")]
+    (expand-iri active-context (last expanded-property-value) {:document-relative true}))
+
+  ;; 7.4.4) If expanded property is @type and value is neither a string nor an array of strings, an invalid
+  ;; @type value error has been detected and processing is aborted... 
+  ([active-context active-property 
+      expanded-property-value :guard #(and (= (first %) "@type") (not (string-or-sequence-of-strings? (last %))))]
+    (json-ld-error "invalid @type value" (str "The value " (last expanded-property-value) " is not a vaid @type.")))
+  ;; ...Otherwise, set expanded value to the result of using the IRI Expansion algorithm, passing active context, 
+  ;; true for vocab, and true for document relative to expand the value or each of its items.
+  ([active-context active-property expanded-property-value :guard #(= (first %) "@type")]
+    (let [value (last expanded-property-value)
+          values (if (sequential? value) value [value])]
+      (map #(expand-iri active-context % {:document-relative true :vocab true}) values)))
+
     ;; 7.4.6) error
     ;; 7.4.7) error
     ;; 7.4.8) error
@@ -58,15 +80,11 @@
     ;; 7.4.11.1) Initialize expanded value to the result of using this algorithm recursively, passing active context,
     ;; @reverse as active property, and value as element.
 
-    (let [expanded-value (expand-iri active-context value {:document-relative true})]
-
       ;; 7.4.9.3) If expanded value is a list object, a list of lists error has been detected and processing is aborted.
 
       ;; 7.4.12) Unless expanded value is null, set the expanded property member of result to expanded value.
-      expanded-value))
-
   ;; or not 7.4)
-  ([active-context active-property expanded-property value]
+  ([active-context active-property expanded-property-value]
   ;; 7.5
   ;; or
   ;; 7.6
@@ -77,6 +95,8 @@
   ;; 7.9
   ;; 7.10
   ;; 7.11
+    (println "here" expanded-property-value)
+    (last expanded-property-value)
   ))
 
 (defun- expansion
@@ -132,8 +152,11 @@
     ;; key for value, and true for vocab.
     ;; 7.3) If expanded property is null or it neither contains a colon (:) nor it is a keyword, drop key by
     ;; continuing to the next key.
-    (let [result (map #(expand-key active-context active-property % (get element %))
-      (filter #(not (drop-key? %)) (map #(expand-iri active-context % {:vocab true}) (sort (keys element)))))]
+    (let [keys (filter #(not (drop-key? %)) (map #(expand-iri active-context % {:vocab true}) (sort (keys element))))
+          values (map #(expand-property active-context active-property [% (get element %)]) keys)]
+      (doseq [key keys]
+        (println "expand key" key "to" (expand-property active-context active-property [key (get element key)])))
+
 
       ;; 7.4.2) If result has already an expanded property member, an colliding keywords error has been detected
       ;; and processing is aborted.
@@ -141,8 +164,8 @@
       ;; 7.4.12) Unless expanded value is null, set the expanded property member of result to expanded value.
       ;; filter out null values
 
-    ;; 8-13 detect some error conditions and tidy up the result
-    "[]")))
+      ;; 8-13 detect some error conditions and tidy up the result
+      (zipmap keys values))))
 
 (defn expand-it [input options]
   (format-output (expansion nil nil (ingest-input input options)) options))

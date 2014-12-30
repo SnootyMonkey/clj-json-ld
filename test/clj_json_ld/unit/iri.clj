@@ -14,6 +14,7 @@
   "ex" "http://example.org/"
   "" "http://empty/"
   "_" "http://underscore/"
+  "term1" {"@id" "http://example.org/term1"}
 })
 
 (def document-relative {:document-relative true})
