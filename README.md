@@ -290,4 +290,4 @@ Thank you to [Gregg Kellog](https://github.com/gkellogg), author of the [json-ld
 
 clj-json-ld is distributed under the [Mozilla Public License v2.0](http://www.mozilla.org/MPL/2.0/).
 
-Copyright © 2014 [Snooty Monkey, LLC](http://snootymonkey.com/)
+Copyright © 2014-2015 [Snooty Monkey, LLC](http://snootymonkey.com/)
