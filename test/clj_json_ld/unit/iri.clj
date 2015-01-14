@@ -11,7 +11,7 @@
 (def context {
   "@base" "http://base/"
   "@vocab" "http://vocab/"
-  "ex" "http://example.org/"
+  "ex" {"@id" "http://example.org/"}
   "" "http://empty/"
   "_" "http://underscore/"
   "term1" {"@id" "http://example.org/term1"}
