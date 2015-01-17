@@ -35,7 +35,8 @@
   (let [value (get values key)]
     (if (and (= key "@type") (not (sequential? value))) [value] value)))
 
-(defun- as-sequence 
+(defun- as-sequence
+  "Fore a value to be sequential if it's not already, a nil value is an empty sequence."
   ([result :guard nil?] [])
   ([result :guard sequential?] result)
   ([result] [result]))
