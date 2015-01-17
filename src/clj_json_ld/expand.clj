@@ -31,6 +31,13 @@
 (defn- scalar? [element]
   (or (string? element) (number? element) (true? element) (false? element)))
 
+(defn- type-as-array [key values]
+  (let [value (get values key)]
+    (if (and (= key "@type") (not (sequential? value))) [value] value)))
+
+(defn- as-sequence [result]
+  (if (sequential? result) result (if (nil? result) [] [result])))
+
 (declare expansion)
 (defun- expand-property
 
@@ -114,7 +121,6 @@
   ;; 7.6
   ;; or
     ;; 7.7 Otherwise, initialize expanded value to the result of using this algorithm recursively, passing active context, key for active property, and value for element.
-    (println "here" active-property expanded-property-value)
     (expand-to-array active-context (first expanded-property-value) (last expanded-property-value))
   ;; +
   ;; 7.8
@@ -192,22 +198,34 @@
       ;; 7.4.12) Unless expanded value is null, set the expanded property member of result to expanded value.
       ;; filter out null values      
       ]
-        (doseq [key expanded-keys]
-          (println "expand key" key "to" (expand-property active-context active-property [key (get expanded-key-value-map key)])))
 
       ;; 7.4.2) If result has already an expanded property member, an colliding keywords error has been detected
       ;; and processing is aborted.
 
-      ;; 8-13 detect some error conditions and tidy up the result
       (zipmap expanded-keys values))))
 
-(defn expand-to-array [active-context active-property element]
-  ;; Finally, if the result is not an array, then set the result to an array containing only the result.
+(defn- expand-to-array [active-context active-property element]
   (let [result (expansion active-context active-property element)]
-    (if (sequential? result) result [result])))
+    (as-sequence result)))
 
 (defn expand-it [input options]
-  (format-output (expand-to-array nil nil (ingest-input input options)) options))
   ;; TODO
-  ;; If, after the above algorithm is run, the result is a JSON object that contains only an @graph key, set the result to
-  ;; the value of @graph's value. Otherwise, if the result is null, set it to an empty array. 
+  ;; If, after the above algorithm is run, the result is a JSON object that contains only an @graph key, set the result to the value of @graph's value. 
+  ;; TODO
+  ;; Otherwise, if the result is null, set it to an empty array. Finally, if the result is not an array, then set the result to an array containing only the result.
+  ;; Finally, if the result is not an array, then set the result to an array containing only the result.
+  (let [result (expansion nil nil (ingest-input input options))
+        ;; 8-13 detect some error conditions and tidy up the result
+        ;; 8)
+        ;; 9) Otherwise, if result contains the key @type and its associated value is not an array, set it to an array containing only the associated value.
+        type-array-result (zipmap (keys result) (map #(type-as-array % result) (keys result)))
+        ;; 10)
+        ;; 11)
+        
+        ;; 12) If active property is null or @graph, drop free-floating values as follows:
+        ;; 12.1) If result is an empty JSON object or contains the keys @value or @list, set result to null.
+        
+        ;; 12.2) Otherwise, if result is a JSON object whose only key is @id, set result to null.
+        final-result (if (and (= (count type-array-result) 1) (contains? type-array-result "@id")) nil type-array-result)]
+      ;; 13) Return result
+      (format-output (as-sequence final-result) options)))
