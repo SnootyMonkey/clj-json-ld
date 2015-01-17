@@ -35,8 +35,10 @@
   (let [value (get values key)]
     (if (and (= key "@type") (not (sequential? value))) [value] value)))
 
-(defn- as-sequence [result]
-  (if (sequential? result) result (if (nil? result) [] [result])))
+(defun- as-sequence 
+  ([result :guard nil?] [])
+  ([result :guard sequential?] result)
+  ([result] [result]))
 
 (declare expansion)
 (defun- expand-property
