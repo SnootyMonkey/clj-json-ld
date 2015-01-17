@@ -4,6 +4,7 @@
   [Expansion Algorithm section](http://www.w3.org/TR/json-ld-api/#expansion-algorithm).
   "
   (:require [defun :refer (defun-)]
+            [clojure.string :as s]
             [clj-json-ld.util.format :refer (ingest-input format-output)]
             [clj-json-ld.value :refer (expand-value)]
             [clj-json-ld.json-ld-error :refer (json-ld-error)]
@@ -73,9 +74,16 @@
         {"@value" nil}
         value)))
 
-    ;; 7.4.7) error
-    ;; 7.4.8) error
-    ;; 7.4.11) error
+  ;; 7.4.7) If expanded property is @language and value is not a string, an invalid language-tagged string error
+  ;; has been detected and processing is aborted...
+  ([active-context active-property expanded-property-value :guard #(and (= (first %) "@language") (not (string? (last %))))]
+    (json-ld-error "invalid language-tagged string" (str "The value " (last expanded-property-value) " is not a valid @language string.")))
+  ;; ...Otherwise, set expanded value to lowercased value.
+  ([active-context active-property expanded-property-value :guard #(= (first %) "@language")]
+    (s/lower-case (last expanded-property-value)))
+
+  ;; 7.4.8) error
+  ;; 7.4.11) error
 
     ;; return nil for:
     ;; 7.4.9.1) If active property is null or @graph, continue with the next key from element to remove the 
