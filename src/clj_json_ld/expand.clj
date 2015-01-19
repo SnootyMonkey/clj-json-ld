@@ -192,24 +192,34 @@
       ;; filter out null values
       values (map #(expand-property active-context % [% (get element %)]) element-keys)
       expanded-key-value-map (zipmap expanded-keys values)
+      keys-to-remove (filter drop-key? expanded-keys)]
 
       ;; 7.3) If expanded property is null or it neither contains a colon (:) nor it is a keyword, drop key by
       ;; continuing to the next key.
-      ;; we have drop-key? as a function for filter for this
+      (apply dissoc expanded-key-value-map keys-to-remove)
+      
 
       ;; TODO null filtering part of this
       ;; 7.4.12) Unless expanded value is null, set the expanded property member of result to expanded value.
       ;; filter out null values      
-      ]
+      
 
       ;; 7.4.2) If result has already an expanded property member, an colliding keywords error has been detected
       ;; and processing is aborted.
-
-      (zipmap expanded-keys values))))
+      )))
 
 (defn- expand-to-array [active-context active-property element]
   (let [result (expansion active-context active-property element)]
     (as-sequence result)))
+
+(defun- nil-or-empty? 
+  ([nil] true)
+  ([value :guard #(and (sequential? %) (empty? %))] true)
+  ([_] false))
+
+(defn- filter-null-values [k-v-map]
+  (let [keys-to-remove (filter #(nil-or-empty? (get k-v-map %)) (keys k-v-map))]
+    (apply dissoc k-v-map keys-to-remove)))
 
 (defn expand-it [input options]
   ;; TODO
@@ -219,9 +229,12 @@
   ;; Finally, if the result is not an array, then set the result to an array containing only the result.
   (let [result (expansion nil nil (ingest-input input options))
         ;; 8-13 detect some error conditions and tidy up the result
-        ;; 8)
+        ;; 8) TODO
+        ;; 8.1) TODO
+        ;; 8.2) If the value of result's @value key is null, then set result to null.
+        filtered-result (filter-null-values result)
         ;; 9) Otherwise, if result contains the key @type and its associated value is not an array, set it to an array containing only the associated value.
-        type-array-result (zipmap (keys result) (map #(type-as-array % result) (keys result)))
+        type-array-result (zipmap (keys filtered-result) (map #(type-as-array % filtered-result) (keys filtered-result)))
         ;; 10)
         ;; 11)
         
