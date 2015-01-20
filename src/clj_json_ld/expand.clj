@@ -41,6 +41,28 @@
   ([result :guard sequential?] result)
   ([result] [result]))
 
+(defun- nil-or-empty-value?
+  (["@value" nil] true)
+  (["@value" value :guard #(and (sequential? %) (empty? %))] true)
+  ([_ _] false))
+
+(defn- filter-null-values
+  "8.2) If the value of result's @value key is null, then set result to null."
+  [k-v-map]
+  (let [keys-to-remove (filter #(nil-or-empty-value? % (get k-v-map %)) (keys k-v-map))]
+    (apply dissoc k-v-map keys-to-remove)))
+
+(defn- value-as-set-value
+  "10.2) If result contains the key @set, then set result to the key's associated value."
+  [key, values]
+  (let [value (first (get values key))] ;; value is likely an array at this point
+    (if (and (associative? value) (contains? value "@set"))
+      (let [set-value (get values "@set")]
+        (if (nil? set-value)
+          [] ;; empty array as the value of the property
+          [set-value])) ;; the value of this property is now the value of @set
+      (get values key)))) ;; return the original value
+
 (declare expansion)
 (defun- expand-property
 
@@ -95,6 +117,18 @@
   ;; 7.4.8) error
   ;; 7.4.11) error
 
+  ;; 7.4.9) If expanded property is @list:
+  ;; 7.4.9.1) If active property is null or @graph, continue with the next key from element to remove the free-floating list.
+  ([active-context active-property :guard #(or (nil? %) (= % "@graph")) expanded-property-value :guard #(= (first %) "@list")]
+    nil)   
+  ;; 7.4.9.2) Otherwise, initialize expanded value to the result of using this algorithm recursively passing active context,
+  ;; active property, and value for element.
+  ([active-context active-property expanded-property-value :guard #(= (first %) "@list")]
+    ;; TODO
+    (println "dealing with @list property value for" (last expanded-property-value))
+    ;; 7.4.9.3) If expanded value is a list object, a list of lists error has been detected and processing is aborted.
+    (expand-to-array active-context active-property (last expanded-property-value)))
+
     ;; return nil for:
     ;; 7.4.9.1) If active property is null or @graph, continue with the next key from element to remove the 
     ;; free-floating list.
@@ -108,8 +142,12 @@
     ;; 7.4.9.2) Otherwise, initialize expanded value to the result of using this algorithm recursively passing active
     ;; context, active property, and value for element.
     ;; -or-
-    ;; 7.4.10) If expanded property is @set, set expanded value to the result of using this algorithm recursively, 
-    ;; passing active context, active property, and value for element.
+  
+  ;; 7.4.10) If expanded property is @set, set expanded value to the result of using this algorithm recursively, 
+  ;; passing active context, active property, and value for element.
+  ([active-context active-property expanded-property-value :guard #(= (first %) "@set")]
+    (expand-to-array active-context active-property (last expanded-property-value)))
+
     ;; -or-
     ;; 7.4.11.1) Initialize expanded value to the result of using this algorithm recursively, passing active context,
     ;; @reverse as active property, and value as element.
@@ -125,11 +163,6 @@
   ;; or
     ;; 7.7 Otherwise, initialize expanded value to the result of using this algorithm recursively, passing active context, key for active property, and value for element.
     (expand-to-array active-context (first expanded-property-value) (last expanded-property-value))
-  ;; +
-  ;; 7.8
-  ;; 7.9
-  ;; 7.10
-  ;; 7.11
   ))
 
 (defun- expansion
@@ -191,19 +224,14 @@
       ;; 7.4.12) Unless expanded value is null, set the expanded property member of result to expanded value.
       ;; filter out null values
       values (map #(expand-property active-context % [% (get element %)]) element-keys)
+      ;; TODO next: write a no-null-zipmap implementation that uses pattern matching and removes keys with null values
       expanded-key-value-map (zipmap expanded-keys values)
-      keys-to-remove (filter drop-key? expanded-keys)]
-
       ;; 7.3) If expanded property is null or it neither contains a colon (:) nor it is a keyword, drop key by
       ;; continuing to the next key.
-      (apply dissoc expanded-key-value-map keys-to-remove)
+      keys-to-remove (filter drop-key? expanded-keys)
+      k-v-map (apply dissoc expanded-key-value-map keys-to-remove)]
       
-
-      ;; TODO null filtering part of this
-      ;; 7.4.12) Unless expanded value is null, set the expanded property member of result to expanded value.
-      ;; filter out null values      
-      
-
+      k-v-map
       ;; 7.4.2) If result has already an expanded property member, an colliding keywords error has been detected
       ;; and processing is aborted.
       )))
@@ -212,21 +240,13 @@
   (let [result (expansion active-context active-property element)]
     (as-sequence result)))
 
-(defun- nil-or-empty? 
-  ([nil] true)
-  ([value :guard #(and (sequential? %) (empty? %))] true)
-  ([_] false))
-
-(defn- filter-null-values [k-v-map]
-  (let [keys-to-remove (filter #(nil-or-empty? (get k-v-map %)) (keys k-v-map))]
-    (apply dissoc k-v-map keys-to-remove)))
-
 (defn expand-it [input options]
   ;; TODO
   ;; If, after the above algorithm is run, the result is a JSON object that contains only an @graph key, set the result to the value of @graph's value. 
   ;; TODO
   ;; Otherwise, if the result is null, set it to an empty array. Finally, if the result is not an array, then set the result to an array containing only the result.
   ;; Finally, if the result is not an array, then set the result to an array containing only the result.
+  ;; TODO replace this series of lets with -> macro
   (let [result (expansion nil nil (ingest-input input options))
         ;; 8-13 detect some error conditions and tidy up the result
         ;; 8) TODO
@@ -235,13 +255,17 @@
         filtered-result (filter-null-values result)
         ;; 9) Otherwise, if result contains the key @type and its associated value is not an array, set it to an array containing only the associated value.
         type-array-result (zipmap (keys filtered-result) (map #(type-as-array % filtered-result) (keys filtered-result)))
-        ;; 10)
+        ;; 10) Otherwise, if result contains the key @set or @list:
+        ;; TODO 10.1) The result must contain at most one other key and that key must be @index.
+        ;; Otherwise, an invalid set or list object error has been detected and processing is aborted.
+        ;; 10.2) If result contains the key @set, then set result to the key's associated value.
+        set-result (zipmap (keys type-array-result) (map #(value-as-set-value % type-array-result) (keys type-array-result)))
         ;; 11)
         
         ;; 12) If active property is null or @graph, drop free-floating values as follows:
         ;; 12.1) If result is an empty JSON object or contains the keys @value or @list, set result to null.
         
         ;; 12.2) Otherwise, if result is a JSON object whose only key is @id, set result to null.
-        final-result (if (and (= (count type-array-result) 1) (contains? type-array-result "@id")) nil type-array-result)]
+        final-result (if (and (= (count set-result) 1) (contains? set-result "@id")) nil set-result)]
       ;; 13) Return result
       (format-output (as-sequence final-result) options)))
