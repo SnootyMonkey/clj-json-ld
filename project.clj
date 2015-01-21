@@ -34,7 +34,7 @@
         [lein-kibit "0.0.8"] ; Static code search for non-idiomatic code https://github.com/jonase/kibit
         [jonase/eastwood "0.2.1"] ; Clojure linter https://github.com/jonase/eastwood
         [lein-checkall "0.1.1"] ; Runs bikeshed, kibit and eastwood https://github.com/itang/lein-checkall
-        [lein-ancient "0.5.5"] ; Check for outdated dependencies https://github.com/xsc/lein-ancient
+        [lein-ancient "0.6.1"] ; Check for outdated dependencies https://github.com/xsc/lein-ancient
         [lein-spell "0.1.0"] ; Catch spelling mistakes in docs and docstrings https://github.com/cldwalker/lein-spell
       ]
 
