@@ -1,10 +1,39 @@
-/target
-/classes
-/checkouts
+#####=== Clojure ===#####
+
 pom.xml
 pom.xml.asc
-*.jar
-*.class
-/.nrepl-port
-/.lein-repl-history
+*jar
+*class
+/lib/
+/classes/
+/target/
+/checkouts/
+.lein-deps-sum
+.lein-repl-history
+.lein-plugins/
+.lein-failures
+.nrepl-port
+
+
+#####=== OSX ===#####
 .DS_Store
+.AppleDouble
+.LSOverride
+
+# Icon must end with two \r
+Icon
+
+
+# Thumbnails
+._*
+
+# Files that might appear on external disk
+.Spotlight-V100
+.Trashes
+
+# Directories potentially created on remote AFP share
+.AppleDB
+.AppleDesktop
+Network Trash Folder
+Temporary Items
+.apdisk
