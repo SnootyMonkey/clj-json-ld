@@ -225,7 +225,7 @@
       ;; filter out null values
       values (map #(expand-property active-context % [% (get element %)]) element-keys)
       ;; TODO next: write a no-null-zipmap implementation that uses pattern matching and removes keys with null values
-      expanded-key-value-map (zipmap expanded-keys values)
+      expanded-key-value-map (zipmap-filter-values #(not (nil? %)) expanded-keys values)
       ;; 7.3) If expanded property is null or it neither contains a colon (:) nor it is a keyword, drop key by
       ;; continuing to the next key.
       keys-to-remove (filter drop-key? expanded-keys)
