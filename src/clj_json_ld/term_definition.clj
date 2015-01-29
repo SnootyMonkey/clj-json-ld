@@ -295,19 +295,15 @@
               value (get local-context term)]
 
           (match [value]
-
             ;; 6) If value is null or value is a JSON object containing the key-value pair @id-null, set
             ;; the term definition in active context to null, set the value associated with defined's key
             ;; term to true, and return.
-            ;; TODO revisit and simplify this logic
-            [value :guard #(or
-                              (nil? %)
-                              (and
-                                (map? %)
-                                (and
-                                  (contains? % "@id")
-                                  (= (get % "@id") nil))))]
-              ; return the result tuple with the term as nil
+            [nil] [(assoc updated-context term nil) (assoc defined term true)]
+            [_ :guard #(and
+                        (associative? %)
+                        (and
+                          (contains? % "@id")
+                          (= (get % "@id") nil)))]
               [(assoc updated-context term nil) (assoc defined term true)]
 
             ;; 7) Otherwise, if value is a string, convert it to a JSON object consisting of a
@@ -315,14 +311,14 @@
             [value :guard string?] [(assoc updated-context term {"@id" value}) (assoc defined term true)]
 
             ;; 8) Otherwise, value must be a JSON object...
-            [value :guard map?]
+            [_ :guard map?]
               ;; 9) Create a new term definition, definition.
               (new-term-definition active-context local-context term defined)
 
             ;; 8) ... if not, an invalid term definition
             ;; error has been detected and processing is aborted.
-            [value] (json-ld-error "invalid term definition" (str "The term " term " in the local context is not valid."))
-
+            :else (json-ld-error "invalid term definition"
+              (str "The term " term " in the local context is not valid."))
           )
         )
 

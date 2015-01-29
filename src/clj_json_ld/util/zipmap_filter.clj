@@ -7,6 +7,10 @@
 ; New GH repo
 ; Move the namespace
 ; Create the tests
+; Add direct filter functions
+; Generate API docs - maybe use https://github.com/gdeer81/marginalia like http://atroche.github.io/clj-sockets/
+; Create the tests
+; Add core.typed support
 ; Readme
 ; CI on travis
 ; submit to clojars
