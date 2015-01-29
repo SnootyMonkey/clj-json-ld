@@ -28,7 +28,7 @@
       (match [value]
 
         ;; 3.4.2) If value is null, remove the base IRI of result.
-        [value :guard #(not %)] (dissoc result "@base")
+        [_ :guard not] (dissoc result "@base")
 
         ;; 3.4.3) Otherwise, if value is an absolute IRI, the base IRI of result is set to value.
         [value :guard absolute-iri?] (assoc result "@base" value)
@@ -40,7 +40,7 @@
           (assoc result "@base" (u/resolve (get result "@base") value))
 
         ;; 3.4.5) Otherwise, an invalid base IRI error has been detected and processing is aborted.
-        [_] (json-ld-error "invalid base IRI"
+        :else (json-ld-error "invalid base IRI"
               "local context @base has a relative IRI, and there is no absolute @base IRI in the active context"))))
 
   ; context has no @base key, so do nothing
