@@ -10,7 +10,8 @@
             [clj-json-ld.json-ld-error :refer (json-ld-error)]
             [clj-json-ld.context :refer (update-with-local-context)]
             [clj-json-ld.iri :refer (expand-iri)]
-            [clj-json-ld.json-ld :refer (json-ld-keyword?)]))
+            [clj-json-ld.json-ld :refer (json-ld-keyword?)]
+            [clj-json-ld.util.zipmap-filter :refer (zipmap-filter-values)]))
 
 (defn- drop-key? 
   "
@@ -46,6 +47,7 @@
   (["@value" value :guard #(and (sequential? %) (empty? %))] true)
   ([_ _] false))
 
+;; TODO replace with filter-map implementation
 (defn- filter-null-values
   "8.2) If the value of result's @value key is null, then set result to null."
   [k-v-map]
@@ -64,6 +66,7 @@
       (get values key)))) ;; return the original value
 
 (declare expansion)
+(declare expand-to-array)
 (defun- expand-property
 
   ;; 7.4.1) If active property equals @reverse, an invalid reverse property map error has been detected and
@@ -218,19 +221,22 @@
       ;; 7) For each key and value in element, ordered lexicographically by key: 
       element-keys (sort (keys element))
 
+      ;; TODO
+      ;; 7.1) If key is @context, continue to the next key.
+
       ;; 7.2) Set expanded property to the result of using the IRI Expansion algorithm, passing active context,
       ;; key for value, and true for vocab.
       expanded-keys (map #(expand-iri active-context % {:vocab true}) element-keys)
       ;; 7.4.12) Unless expanded value is null, set the expanded property member of result to expanded value.
       ;; filter out null values
       values (map #(expand-property active-context % [% (get element %)]) element-keys)
-      ;; TODO next: write a no-null-zipmap implementation that uses pattern matching and removes keys with null values
-      expanded-key-value-map (zipmap-filter-values #(not (nil? %)) expanded-keys values)
       ;; 7.3) If expanded property is null or it neither contains a colon (:) nor it is a keyword, drop key by
       ;; continuing to the next key.
+      expanded-key-value-map (zipmap-filter-values #(not (nil? %)) expanded-keys values)
+
       keys-to-remove (filter drop-key? expanded-keys)
       k-v-map (apply dissoc expanded-key-value-map keys-to-remove)]
-      
+
       k-v-map
       ;; 7.4.2) If result has already an expanded property member, an colliding keywords error has been detected
       ;; and processing is aborted.
@@ -238,7 +244,7 @@
 
 (defn- expand-to-array [active-context active-property element]
   (let [result (expansion active-context active-property element)]
-    (as-sequence result)))
+    (if (nil? result) nil (as-sequence result))))
 
 (defn expand-it [input options]
   ;; TODO

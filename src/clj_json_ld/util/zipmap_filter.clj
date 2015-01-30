@@ -7,7 +7,7 @@
 ; New GH repo
 ; Move the namespace
 ; Create the tests
-; Add direct filter functions
+; Add direct filter-map functions
 ; Generate API docs - maybe use https://github.com/gdeer81/marginalia like http://atroche.github.io/clj-sockets/
 ; Create the tests
 ; Add core.typed support
@@ -16,34 +16,6 @@
 ; submit to clojars
 ; add to SM.com
 ; submit to clojure mailing list
-
-; Presentation content:
-
-; create a lib
-;; This is zipmap
-; (defn zipmap
-;   "Returns a map with the keys mapped to the corresponding vals."
-;   [keys vals]
-;   (loop [map {}
-;          ks (seq keys)
-;          vs (seq vals)]
-;     (if (and ks vs)
-;       (recur (assoc map (first ks) (first vs))
-;              (next ks)
-;              (next vs))
-;       map)))
-
-;; This is zipmap on patterns
-; (defun zipmap
-;   "Returns a map with the keys mapped to the corresponding vals."
-;   ([ks vs] (recur {} (seq ks) (seq vs)))
-;   ([map ks :guard empty? vs] map)
-;   ([map ks vs :guard empty?] map)
-;   ([map ks vs] (recur (assoc map (first ks) (first vs)) (next ks) (next vs))))
-
-; Show them zipmap-filter
-
-;; Any questions?
 
 (defun zipmap-filter
   "Returns a map with the keys mapped to the corresponding values for the keys and values that satisfy the predicate."
