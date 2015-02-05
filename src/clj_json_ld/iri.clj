@@ -48,7 +48,7 @@
 
       ;; 4.4) If active context contains a term definition for prefix, return the result of concatenating the IRI
       ;; mapping associated with prefix and suffix.
-      [prefix :guard #(get active-context %) suffix] (str (get active-context prefix) suffix)
+      [prefix :guard #(get active-context %) suffix] (str (get-in active-context [prefix "@id"]) suffix)
 
       ;; 4.5) Return value as it is already an absolute IRI.
       :else value)))

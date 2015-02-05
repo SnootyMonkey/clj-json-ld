@@ -12,8 +12,8 @@
   "@base" "http://base/"
   "@vocab" "http://vocab/"
   "ex" {"@id" "http://example.org/"}
-  "" "http://empty/"
-  "_" "http://underscore/"
+  "" {"@id" "http://empty/"}
+  "_" {"@id" "http://underscore/"}
   "term1" {"@id" "http://example.org/term1"}
 })
 

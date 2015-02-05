@@ -121,16 +121,20 @@
   ;; 7.4.11) error
 
   ;; 7.4.9) If expanded property is @list:
+
   ;; 7.4.9.1) If active property is null or @graph, continue with the next key from element to remove the free-floating list.
   ([active-context active-property :guard #(or (nil? %) (= % "@graph")) expanded-property-value :guard #(= (first %) "@list")]
     nil)   
   ;; 7.4.9.2) Otherwise, initialize expanded value to the result of using this algorithm recursively passing active context,
   ;; active property, and value for element.
   ([active-context active-property expanded-property-value :guard #(= (first %) "@list")]
+    (println "dealing with @list property value for" active-property "of" (first expanded-property-value) "and" (last expanded-property-value))
     ;; TODO
-    (println "dealing with @list property value for" (last expanded-property-value))
     ;; 7.4.9.3) If expanded value is a list object, a list of lists error has been detected and processing is aborted.
-    (expand-to-array active-context active-property (last expanded-property-value)))
+    (let [list-result (expand-to-array active-context active-property (last expanded-property-value))]
+      (println "result of recusion:" list-result)
+      list-result
+      ))
 
     ;; return nil for:
     ;; 7.4.9.1) If active property is null or @graph, continue with the next key from element to remove the 

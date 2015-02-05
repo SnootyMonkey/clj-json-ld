@@ -171,8 +171,7 @@
               ;; the prefix as term, and defined.
               ;; Also... 2) Set the value associated with defined's term key to false. This indicates that the term
               ;; definition is now being created but is not yet complete.
-              (do (print "recurse!" term-prefix)
-              (first (create-term-definition active-context local-context term-prefix (assoc defined term false))))
+              (first (create-term-definition active-context local-context term-prefix (assoc defined term false)))
               active-context)]
 
       ;; 14.2 If term's prefix has a term definition in active context,...
