@@ -9,7 +9,7 @@
 
 (facts "Expansion Evaluation Tests"
 
-  (doseq [test-case (take 3 (tests-from-manifest manifest))]
+  (doseq [test-case (take 4 (tests-from-manifest manifest))]
 
     (print-test "Expansion" test-case)
 

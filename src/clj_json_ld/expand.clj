@@ -65,6 +65,25 @@
           [set-value])) ;; the value of this property is now the value of @set
       (get values key)))) ;; return the original value
 
+(defn- has-list-container-mapping? 
+  "True if the container mapping associated to key in active context is @list"
+  ([active-context-tuple] (has-list-container-mapping? (first active-context-tuple) (last active-context-tuple)))
+  ([key active-context] (= (get-in active-context [key "@container"]) "@list")))
+      
+(defun- convert-to-list-object
+  "7.9) If the container mapping associated to key in active context is @list and expanded value is not
+   already a list object, convert expanded value to a list object by first setting it to an array
+   containing only expanded value if it is not already an array, and then by setting it to a JSON object
+   containing the key-value pair @list-expanded value."
+  ;; have a list!
+  ([_ expanded-value :guard #(and (associative? %) (contains? % "@list"))] expanded-value) ;; expanded value already IS a list object 
+  ([_ expanded-value :guard #(and (sequential? %) (associative? (first %)) (contains? (first %) "@list"))] expanded-value) ;; expanded value already IS a sequence containing a list object   
+  ;; need a list, don't have it
+  ([active-context-tuple :guard has-list-container-mapping? expanded-value :guard sequential?] [{"@list" expanded-value}]) ;; the container mapping associated to key in active context is @list and expanded value is not already a list object, (so we need one), and it's already an array
+  ([active-context-tuple :guard has-list-container-mapping? expanded-value] [{"@list" [expanded-value]}]) ;; the container mapping associated to key in active context is @list and expanded value is not already a list object (so we need one), and it's not an array
+  ;; don't need a list
+  ([_ expanded-value] expanded-value)) ;; there is no @list container mapping associated to key in active context
+ 
 (declare expansion)
 (declare expand-to-array)
 (defun- expand-property
@@ -101,13 +120,12 @@
   ;; has been detected and processing is aborted...
   ([active-context active-property expanded-property-value :guard #(and (= (first %) "@value") (not (or (scalar? (last %)) (nil? (last %)))))]
     (json-ld-error "invalid value object value" (str "The value " (last expanded-property-value) " is not a valid @value.")))
-  ;; ... Otherwise, set expanded value to value. If expanded value is null, set the @value member of result to null and continue with the next key from element. 
+  ;; ... Otherwise, set expanded value to value. If expanded value is null, set the @value member of result to null and
+  ;; continue with the next key from element. 
   ;; Null values need to be preserved in this case as the meaning of an @type member depends on the existence of an @value member.
   ([active-context active-property expanded-property-value :guard #(= (first %) "@value")]
     (let [value (last expanded-property-value)]
-      (if (nil? value)
-        {"@value" nil}
-        value)))
+      value))
 
   ;; 7.4.7) If expanded property is @language and value is not a string, an invalid language-tagged string error
   ;; has been detected and processing is aborted...
@@ -128,13 +146,10 @@
   ;; 7.4.9.2) Otherwise, initialize expanded value to the result of using this algorithm recursively passing active context,
   ;; active property, and value for element.
   ([active-context active-property expanded-property-value :guard #(= (first %) "@list")]
-    (println "dealing with @list property value for" active-property "of" (first expanded-property-value) "and" (last expanded-property-value))
     ;; TODO
     ;; 7.4.9.3) If expanded value is a list object, a list of lists error has been detected and processing is aborted.
     (let [list-result (expand-to-array active-context active-property (last expanded-property-value))]
-      (println "result of recusion:" list-result)
-      list-result
-      ))
+      list-result))
 
     ;; return nil for:
     ;; 7.4.9.1) If active property is null or @graph, continue with the next key from element to remove the 
@@ -223,25 +238,54 @@
     
     (let [
       ;; 7) For each key and value in element, ordered lexicographically by key: 
-      element-keys (sort (keys element))
+      original-keys (sort (keys element))
 
       ;; TODO
       ;; 7.1) If key is @context, continue to the next key.
 
       ;; 7.2) Set expanded property to the result of using the IRI Expansion algorithm, passing active context,
       ;; key for value, and true for vocab.
-      expanded-keys (map #(expand-iri active-context % {:vocab true}) element-keys)
-      ;; 7.4.12) Unless expanded value is null, set the expanded property member of result to expanded value.
-      ;; filter out null values
-      values (map #(expand-property active-context % [% (get element %)]) element-keys)
+      expanded-keys (map #(expand-iri active-context % {:vocab true}) original-keys)
+      original-key-expanded-key-map (zipmap original-keys expanded-keys)
+
+      expanded-values (map #(expand-property active-context % [% (get element %)]) original-keys)
+      original-key-expanded-value-map (zipmap original-keys expanded-values)
+      expanded-key-expanded-value-map (zipmap expanded-keys expanded-values)
+
+      ;; 7.9) If the container mapping associated to key in active context is @list and expanded value is not
+      ;; already a list object, convert expanded value to a list object by first setting it to an array
+      ;; containing only expanded value if it is not already an array, and then by setting it to a JSON object
+      ;; containing the key-value pair @list-expanded value.
+      list-map (zipmap (map #(get original-key-expanded-key-map %) original-keys)
+        (map #(convert-to-list-object [% active-context] (get original-key-expanded-value-map %)) original-keys))
+
       ;; 7.3) If expanded property is null or it neither contains a colon (:) nor it is a keyword, drop key by
       ;; continuing to the next key.
-      expanded-key-value-map (zipmap-filter-values #(not (nil? %)) expanded-keys values)
-
       keys-to-remove (filter drop-key? expanded-keys)
-      k-v-map (apply dissoc expanded-key-value-map keys-to-remove)]
+      k-v-map (apply dissoc list-map keys-to-remove)
 
-      k-v-map
+      ;; 7.4.12) Unless expanded value is null, set the expanded property member of result to expanded value.
+      ;; filter out null values
+      ;; 7.8) If expanded value is null, ignore key by continuing to the next key from element.
+      filtered-value-map (zipmap-filter-values #(not (nil? %)) (keys k-v-map) (vals k-v-map))
+
+      
+
+      ;; 7.10)
+      
+      ;; 7.11)
+      ]
+      ; (println "ok:" original-keys)
+      ; (println "ek:" expanded-keys)
+      ; (println "ev:" expanded-values)
+      ; (println "okev:" original-key-expanded-value-map)
+      ; (println "ekev:" expanded-key-expanded-value-map)
+      ; (println "lm:" list-map)
+      ; (println "kr:" keys-to-remove)
+      ; (println "kv:" k-v-map)
+      ; (println "fvm:" filtered-value-map)
+
+      (if (empty? filtered-value-map) nil filtered-value-map)
       ;; 7.4.2) If result has already an expanded property member, an colliding keywords error has been detected
       ;; and processing is aborted.
       )))
