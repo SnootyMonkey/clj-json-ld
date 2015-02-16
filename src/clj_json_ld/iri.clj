@@ -48,7 +48,7 @@
 
       ;; 4.4) If active context contains a term definition for prefix, return the result of concatenating the IRI
       ;; mapping associated with prefix and suffix.
-      [prefix :guard #(get active-context %) suffix] (str (get active-context prefix) suffix)
+      [prefix :guard #(get active-context %) suffix] (str (get-in active-context [prefix "@id"]) suffix)
 
       ;; 4.5) Return value as it is already an absolute IRI.
       :else value)))
@@ -66,7 +66,7 @@
 
   ;; 3) If vocab is true and the active context has a term definition for value, return the associated IRI mapping.
   ([args :guard #(and (get-in % [:options :vocab]) (get-in % [:active-context (:value %)]))]
-    (get-in args [:active-context (:value args)]))
+    (get-in args [:active-context (:value args) "@id"]))
 
   ; 4) If value contains a colon (:), it is either an absolute IRI ("http://schema.org/name"), a compact
   ;; IRI ("foaf:name"), or a blank node identifier ("_:")

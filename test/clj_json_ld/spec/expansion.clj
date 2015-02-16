@@ -1,5 +1,6 @@
 (ns clj-json-ld.spec.expansion
-  (:require [midje.sweet :refer :all]
+  (:require [clojure.pprint :refer (pprint)]
+            [midje.sweet :refer :all]
             [cheshire.core :refer (parse-string)]
             [clj-json-ld.util.spec-test-suite :refer :all]
             [clj-json-ld.core :as json-ld]))
@@ -8,7 +9,7 @@
 
 (facts "Expansion Evaluation Tests"
 
-  (doseq [test-case (take 1 (tests-from-manifest manifest))]
+  (doseq [test-case (take 4 (tests-from-manifest manifest))]
 
     (print-test "Expansion" test-case)
 
@@ -26,14 +27,16 @@
     ;; 6,"remote","map"
 
     ;; 1,"JSON","JSON"
-    (parse-string (json-ld/expand (:input test-case))) =>
-      (parse-string (:expect test-case))
+    (let [result (parse-string (json-ld/expand (:input test-case)))]
+      (println "\nActual:")
+      (pprint result)
+      result =>(parse-string (:expect test-case)))
 
     ;; 2,"JSON", "map"
 
     ;; 3,"map", "JSON"
-    (parse-string (json-ld/expand (parse-string (:input test-case)))) =>
-      (parse-string (:expect test-case))
+    ; (parse-string (json-ld/expand (parse-string (:input test-case)))) =>
+    ;   (parse-string (:expect test-case))
 
     ;; 4,"map","map"
 

@@ -11,9 +11,10 @@
 (def context {
   "@base" "http://base/"
   "@vocab" "http://vocab/"
-  "ex" "http://example.org/"
-  "" "http://empty/"
-  "_" "http://underscore/"
+  "ex" {"@id" "http://example.org/"}
+  "" {"@id" "http://empty/"}
+  "_" {"@id" "http://underscore/"}
+  "term1" {"@id" "http://example.org/term1"}
 })
 
 (def document-relative {:document-relative true})

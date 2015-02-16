@@ -4,40 +4,152 @@
   [Expansion Algorithm section](http://www.w3.org/TR/json-ld-api/#expansion-algorithm).
   "
   (:require [defun :refer (defun-)]
+            [clojure.string :as s]
             [clj-json-ld.util.format :refer (ingest-input format-output)]
             [clj-json-ld.value :refer (expand-value)]
             [clj-json-ld.json-ld-error :refer (json-ld-error)]
             [clj-json-ld.context :refer (update-with-local-context)]
             [clj-json-ld.iri :refer (expand-iri)]
-            [clj-json-ld.json-ld :refer (json-ld-keyword?)]))
+            [clj-json-ld.json-ld :refer (json-ld-keyword?)]
+            [clj-json-ld.util.zipmap-filter :refer (zipmap-filter-values)]))
 
 (defn- drop-key? 
   "
   7.3) If expanded property is null or it neither contains a colon (:) nor it is a keyword, drop key by
   continuing to the next key."
   [key]
-  (or (nil? key) (not (re-find #":" key)) (not (json-ld-keyword? key))))
+  (or
+    (nil? key)
+    (and
+      (not (re-find #":" key))
+      (not (json-ld-keyword? key)))))
 
-(defun- expand-key [active-context active-property expanded-property value]
+(defn- string-or-sequence-of-strings?
+  "true if the value is either a string or a sequence containing only strings."
+  [value]
+  (or (string? value) (and (sequential? value) (every? string? value))))
 
-  ;; 7.4) If expanded property is a keyword: 
-  ([active-context active-property expanded-property :guard json-ld-keyword? value]
-    ;; 7.4.1) If active property equals @reverse, an invalid reverse property map error has been detected and
-    ;; processing is aborted.
-    (if (= active-property "@reverse")
-      (json-ld-error "invalid reverse property map"
-        (str "The active property is @reverse and " expanded-property " is a JSON-LD keyword.")))
+(defn- scalar? [element]
+  (or (string? element) (number? element) (true? element) (false? element)))
 
-    ;; 7.4.3) If expanded property is @id and value is not a string, an invalid @id value error has been detected
-    ;; and processing is aborted...
-    (if (and (= expanded-property "@id") (not (string? value)))
-      (json-ld-error "invalid @id" (str "The value " value " is not a vaid @id.")))
+(defn- type-as-array [key values]
+  (let [value (get values key)]
+    (if (and (= key "@type") (not (sequential? value))) [value] value)))
 
-    ;; 7.4.4) error
-    ;; 7.4.6) error
-    ;; 7.4.7) error
-    ;; 7.4.8) error
-    ;; 7.4.11) error
+(defun- as-sequence
+  "Fore a value to be sequential if it's not already, a nil value is an empty sequence."
+  ([result :guard nil?] [])
+  ([result :guard sequential?] result)
+  ([result] [result]))
+
+(defun- nil-or-empty-value?
+  (["@value" nil] true)
+  (["@value" value :guard #(and (sequential? %) (empty? %))] true)
+  ([_ _] false))
+
+;; TODO replace with filter-map implementation
+(defn- filter-null-values
+  "8.2) If the value of result's @value key is null, then set result to null."
+  [k-v-map]
+  (let [keys-to-remove (filter #(nil-or-empty-value? % (get k-v-map %)) (keys k-v-map))]
+    (apply dissoc k-v-map keys-to-remove)))
+
+(defn- value-as-set-value
+  "10.2) If result contains the key @set, then set result to the key's associated value."
+  [key, values]
+  (let [value (first (get values key))] ;; value is likely an array at this point
+    (if (and (associative? value) (contains? value "@set"))
+      (let [set-value (get values "@set")]
+        (if (nil? set-value)
+          [] ;; empty array as the value of the property
+          [set-value])) ;; the value of this property is now the value of @set
+      (get values key)))) ;; return the original value
+
+(defn- has-list-container-mapping? 
+  "True if the container mapping associated to key in active context is @list"
+  ([active-context-tuple] (has-list-container-mapping? (first active-context-tuple) (last active-context-tuple)))
+  ([key active-context] (= (get-in active-context [key "@container"]) "@list")))
+      
+(defun- convert-to-list-object
+  "7.9) If the container mapping associated to key in active context is @list and expanded value is not
+   already a list object, convert expanded value to a list object by first setting it to an array
+   containing only expanded value if it is not already an array, and then by setting it to a JSON object
+   containing the key-value pair @list-expanded value."
+  ;; have a list!
+  ([_ expanded-value :guard #(and (associative? %) (contains? % "@list"))] expanded-value) ;; expanded value already IS a list object 
+  ([_ expanded-value :guard #(and (sequential? %) (associative? (first %)) (contains? (first %) "@list"))] expanded-value) ;; expanded value already IS a sequence containing a list object   
+  ;; need a list, don't have it
+  ([active-context-tuple :guard has-list-container-mapping? expanded-value :guard sequential?] [{"@list" expanded-value}]) ;; the container mapping associated to key in active context is @list and expanded value is not already a list object, (so we need one), and it's already an array
+  ([active-context-tuple :guard has-list-container-mapping? expanded-value] [{"@list" [expanded-value]}]) ;; the container mapping associated to key in active context is @list and expanded value is not already a list object (so we need one), and it's not an array
+  ;; don't need a list
+  ([_ expanded-value] expanded-value)) ;; there is no @list container mapping associated to key in active context
+ 
+(declare expansion)
+(declare expand-to-array)
+(defun- expand-property
+
+  ;; 7.4.1) If active property equals @reverse, an invalid reverse property map error has been detected and
+  ;; processing is aborted.
+  ([active-context active-property :guard #(= % "@reverse") expanded-property-value :guard #(json-ld-keyword? (first %))]
+    (json-ld-error "invalid reverse property map"
+      (str "The active property is @reverse and " (first expanded-property-value) " is a JSON-LD keyword.")))
+
+  ;; 7.4.3) If expanded property is @id and value is not a string, an invalid @id value error has been detected
+  ;; and processing is aborted...
+  ([active-context active-property expanded-property-value :guard #(and (= (first %) "@id") (not (string? (last %))))]
+    (json-ld-error "invalid @id" (str "The value " (last expanded-property-value) " is not a valid @id.")))
+  ;; ...Otherwise, set expanded value to the result of using the IRI Expansion algorithm, passing active context,
+  ;; value, and true for document relative.
+  ([active-context active-property expanded-property-value :guard #(= (first %) "@id")]
+    (expand-iri active-context (last expanded-property-value) {:document-relative true}))
+
+  ;; 7.4.4) If expanded property is @type and value is neither a string nor an array of strings, an invalid
+  ;; @type value error has been detected and processing is aborted... 
+  ([active-context active-property 
+      expanded-property-value :guard #(and (= (first %) "@type") (not (string-or-sequence-of-strings? (last %))))]
+    (json-ld-error "invalid @type value" (str "The value " (last expanded-property-value) " is not a valid @type.")))
+  ;; ...Otherwise, set expanded value to the result of using the IRI Expansion algorithm, passing active context, 
+  ;; true for vocab, and true for document relative to expand the value or each of its items.
+  ([active-context active-property expanded-property-value :guard #(= (first %) "@type")]
+    (let [value (last expanded-property-value)]
+      (if (sequential? value)
+        (map #(expand-iri active-context % {:document-relative true :vocab true}) value)
+        (expand-iri active-context value {:document-relative true :vocab true}))))
+
+  ;; 7.4.6) If expanded property is @value and value is not a scalar or null, an invalid value object value error
+  ;; has been detected and processing is aborted...
+  ([active-context active-property expanded-property-value :guard #(and (= (first %) "@value") (not (or (scalar? (last %)) (nil? (last %)))))]
+    (json-ld-error "invalid value object value" (str "The value " (last expanded-property-value) " is not a valid @value.")))
+  ;; ... Otherwise, set expanded value to value. If expanded value is null, set the @value member of result to null and
+  ;; continue with the next key from element. 
+  ;; Null values need to be preserved in this case as the meaning of an @type member depends on the existence of an @value member.
+  ([active-context active-property expanded-property-value :guard #(= (first %) "@value")]
+    (let [value (last expanded-property-value)]
+      value))
+
+  ;; 7.4.7) If expanded property is @language and value is not a string, an invalid language-tagged string error
+  ;; has been detected and processing is aborted...
+  ([active-context active-property expanded-property-value :guard #(and (= (first %) "@language") (not (string? (last %))))]
+    (json-ld-error "invalid language-tagged string" (str "The value " (last expanded-property-value) " is not a valid @language string.")))
+  ;; ...Otherwise, set expanded value to lowercased value.
+  ([active-context active-property expanded-property-value :guard #(= (first %) "@language")]
+    (s/lower-case (last expanded-property-value)))
+
+  ;; 7.4.8) error
+  ;; 7.4.11) error
+
+  ;; 7.4.9) If expanded property is @list:
+
+  ;; 7.4.9.1) If active property is null or @graph, continue with the next key from element to remove the free-floating list.
+  ([active-context active-property :guard #(or (nil? %) (= % "@graph")) expanded-property-value :guard #(= (first %) "@list")]
+    nil)   
+  ;; 7.4.9.2) Otherwise, initialize expanded value to the result of using this algorithm recursively passing active context,
+  ;; active property, and value for element.
+  ([active-context active-property expanded-property-value :guard #(= (first %) "@list")]
+    ;; TODO
+    ;; 7.4.9.3) If expanded value is a list object, a list of lists error has been detected and processing is aborted.
+    (let [list-result (expand-to-array active-context active-property (last expanded-property-value))]
+      list-result))
 
     ;; return nil for:
     ;; 7.4.9.1) If active property is null or @graph, continue with the next key from element to remove the 
@@ -52,40 +164,36 @@
     ;; 7.4.9.2) Otherwise, initialize expanded value to the result of using this algorithm recursively passing active
     ;; context, active property, and value for element.
     ;; -or-
-    ;; 7.4.10) If expanded property is @set, set expanded value to the result of using this algorithm recursively, 
-    ;; passing active context, active property, and value for element.
+  
+  ;; 7.4.10) If expanded property is @set, set expanded value to the result of using this algorithm recursively, 
+  ;; passing active context, active property, and value for element.
+  ([active-context active-property expanded-property-value :guard #(= (first %) "@set")]
+    (expand-to-array active-context active-property (last expanded-property-value)))
+
     ;; -or-
     ;; 7.4.11.1) Initialize expanded value to the result of using this algorithm recursively, passing active context,
     ;; @reverse as active property, and value as element.
 
-    (let [expanded-value (expand-iri active-context value {:document-relative true})]
-
       ;; 7.4.9.3) If expanded value is a list object, a list of lists error has been detected and processing is aborted.
 
       ;; 7.4.12) Unless expanded value is null, set the expanded property member of result to expanded value.
-      expanded-value))
-
   ;; or not 7.4)
-  ([active-context active-property expanded-property value]
+  ([active-context active-property expanded-property-value]
   ;; 7.5
   ;; or
   ;; 7.6
   ;; or
-  ;; 7.7
-  ;; +
-  ;; 7.8
-  ;; 7.9
-  ;; 7.10
-  ;; 7.11
+    ;; 7.7 Otherwise, initialize expanded value to the result of using this algorithm recursively, passing active context, key for active property, and value for element.
+    (expand-to-array active-context (first expanded-property-value) (last expanded-property-value))
   ))
 
 (defun- expansion
-  
+
   ;; 1) If element is null, return null.
   ([_ _ nil] nil)
   
   ;; 2) If element is a scalar,...
-  ([active-context active-property element :guard #(number? %)]
+  ([active-context active-property element :guard #(scalar? %)]
 
     ;; 2.1) If active property is null or @graph,...
     (if (or (= active-property nil) (= active-property "@graph"))
@@ -119,7 +227,7 @@
 
   ;; 5) If element contains the key @context, set active context to the result of the Context Processing algorithm,
   ;; passing active context and the value of the @context key as local context.
-  ([active-context active-property element :guard #(contains? % "@context")]
+  ([active-context active-property element :guard #(and (associative? %) (contains? % "@context"))]
     (expansion 
       (update-with-local-context active-context (get element "@context"))
       active-property
@@ -127,22 +235,91 @@
 
   ;; 4) Otherwise element is a JSON object.
   ([active-context active-property element]
-    ;; 7) For each key and value in element, ordered lexicographically by key: 
-    ;; 7.2) Set expanded property to the result of using the IRI Expansion algorithm, passing active context,
-    ;; key for value, and true for vocab.
-    ;; 7.3) If expanded property is null or it neither contains a colon (:) nor it is a keyword, drop key by
-    ;; continuing to the next key.
-    (let [result (map #(expand-key active-context active-property % (get element %))
-      (filter #(not (drop-key? %)) (map #(expand-iri active-context % {:vocab true}) (sort (keys element)))))]
+    
+    (let [
+      ;; 7) For each key and value in element, ordered lexicographically by key: 
+      original-keys (sort (keys element))
 
-      ;; 7.4.2) If result has already an expanded property member, an colliding keywords error has been detected
-      ;; and processing is aborted.
+      ;; TODO
+      ;; 7.1) If key is @context, continue to the next key.
+
+      ;; 7.2) Set expanded property to the result of using the IRI Expansion algorithm, passing active context,
+      ;; key for value, and true for vocab.
+      expanded-keys (map #(expand-iri active-context % {:vocab true}) original-keys)
+      original-key-expanded-key-map (zipmap original-keys expanded-keys)
+
+      expanded-values (map #(expand-property active-context % [% (get element %)]) original-keys)
+      original-key-expanded-value-map (zipmap original-keys expanded-values)
+      expanded-key-expanded-value-map (zipmap expanded-keys expanded-values)
+
+      ;; 7.9) If the container mapping associated to key in active context is @list and expanded value is not
+      ;; already a list object, convert expanded value to a list object by first setting it to an array
+      ;; containing only expanded value if it is not already an array, and then by setting it to a JSON object
+      ;; containing the key-value pair @list-expanded value.
+      list-map (zipmap (map #(get original-key-expanded-key-map %) original-keys)
+        (map #(convert-to-list-object [% active-context] (get original-key-expanded-value-map %)) original-keys))
+
+      ;; 7.3) If expanded property is null or it neither contains a colon (:) nor it is a keyword, drop key by
+      ;; continuing to the next key.
+      keys-to-remove (filter drop-key? expanded-keys)
+      k-v-map (apply dissoc list-map keys-to-remove)
 
       ;; 7.4.12) Unless expanded value is null, set the expanded property member of result to expanded value.
       ;; filter out null values
+      ;; 7.8) If expanded value is null, ignore key by continuing to the next key from element.
+      filtered-value-map (zipmap-filter-values #(not (nil? %)) (keys k-v-map) (vals k-v-map))
 
-    ;; 8-13 detect some error conditions and tidy up the result
-    "[]")))
+      
+
+      ;; 7.10)
+      
+      ;; 7.11)
+      ]
+      ; (println "ok:" original-keys)
+      ; (println "ek:" expanded-keys)
+      ; (println "ev:" expanded-values)
+      ; (println "okev:" original-key-expanded-value-map)
+      ; (println "ekev:" expanded-key-expanded-value-map)
+      ; (println "lm:" list-map)
+      ; (println "kr:" keys-to-remove)
+      ; (println "kv:" k-v-map)
+      ; (println "fvm:" filtered-value-map)
+
+      (if (empty? filtered-value-map) nil filtered-value-map)
+      ;; 7.4.2) If result has already an expanded property member, an colliding keywords error has been detected
+      ;; and processing is aborted.
+      )))
+
+(defn- expand-to-array [active-context active-property element]
+  (let [result (expansion active-context active-property element)]
+    (if (nil? result) nil (as-sequence result))))
 
 (defn expand-it [input options]
-  (format-output (expansion nil nil (ingest-input input options)) options))
+  ;; TODO
+  ;; If, after the above algorithm is run, the result is a JSON object that contains only an @graph key, set the result to the value of @graph's value. 
+  ;; TODO
+  ;; Otherwise, if the result is null, set it to an empty array. Finally, if the result is not an array, then set the result to an array containing only the result.
+  ;; Finally, if the result is not an array, then set the result to an array containing only the result.
+  ;; TODO replace this series of lets with -> macro
+  (let [result (expansion nil nil (ingest-input input options))
+        ;; 8-13 detect some error conditions and tidy up the result
+        ;; 8) TODO
+        ;; 8.1) TODO
+        ;; 8.2) If the value of result's @value key is null, then set result to null.
+        filtered-result (filter-null-values result)
+        ;; 9) Otherwise, if result contains the key @type and its associated value is not an array, set it to an array containing only the associated value.
+        type-array-result (zipmap (keys filtered-result) (map #(type-as-array % filtered-result) (keys filtered-result)))
+        ;; 10) Otherwise, if result contains the key @set or @list:
+        ;; TODO 10.1) The result must contain at most one other key and that key must be @index.
+        ;; Otherwise, an invalid set or list object error has been detected and processing is aborted.
+        ;; 10.2) If result contains the key @set, then set result to the key's associated value.
+        set-result (zipmap (keys type-array-result) (map #(value-as-set-value % type-array-result) (keys type-array-result)))
+        ;; 11)
+        
+        ;; 12) If active property is null or @graph, drop free-floating values as follows:
+        ;; 12.1) If result is an empty JSON object or contains the keys @value or @list, set result to null.
+        
+        ;; 12.2) Otherwise, if result is a JSON object whose only key is @id, set result to null.
+        final-result (if (and (= (count set-result) 1) (contains? set-result "@id")) nil set-result)]
+      ;; 13) Return result
+      (format-output (as-sequence final-result) options)))

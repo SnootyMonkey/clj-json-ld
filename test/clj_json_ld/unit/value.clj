@@ -8,7 +8,7 @@
             [clj-json-ld.value :refer (expand-value)]))
 
 (def context {
-  "ex" "http://example.org/"
+  "ex" {"@id" "http://example.org/"}
   "ex:integer" {"@type" "xsd:integer"}
   "ex:double" {"@type" "xsd:double"}
   "ex:boolean" {"@type" "xsd:boolean"}

@@ -10,4 +10,4 @@
 (defn format-output
   ""
   [json options]
-  json)
+  (generate-string json))
