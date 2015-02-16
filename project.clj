@@ -62,7 +62,7 @@
   :eastwood {
     ;; Enable some linters that are disabled by default
     :add-linters [:unused-namespaces :unused-private-vars]
-    
+    :exclude-linters [:suspicious-expression]
     ;; More extensive lintering that will have a few false positives
     ;; :add-linters [:unused-namespaces :unused-private-vars :unused-locals :unused-fn-args]
     
