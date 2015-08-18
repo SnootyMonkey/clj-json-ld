@@ -13,10 +13,10 @@
   :min-lein-version "2.5.0" ; highest version supported by Travis-CI as of 10/28/2014
 
   :dependencies [
-    [org.clojure/clojure "1.6.0"] ; Lisp on the JVM http://clojure.org/documentation
+    [org.clojure/clojure "1.7.0"] ; Lisp on the JVM http://clojure.org/documentation
     [org.clojure/core.match "0.3.0-alpha4"] ; Erlang-esque pattern matching https://github.com/clojure/core.match
     [defun "0.2.0-RC"] ; Erlang-esque pattern matching for Clojure functions https://github.com/killme2008/defun
-    [cheshire "5.4.0"] ; JSON de/encoding https://github.com/dakrone/cheshire
+    [cheshire "5.5.0"] ; JSON de/encoding https://github.com/dakrone/cheshire
     [clojurewerkz/urly "2.0.0-alpha5"] ; URI and URL parsing library https://github.com/michaelklishin/urly
   ]
 
@@ -24,17 +24,17 @@
     :dev {
 
       :dependencies [
-        [midje "1.6.3"] ; Example-based testing https://github.com/marick/Midje
+        [midje "1.7.0"] ; Example-based testing https://github.com/marick/Midje
       ]
       
       :plugins [
-        [codox "0.8.10"] ; Generate Clojure API docs https://github.com/weavejester/codox
-        [lein-midje "3.1.3"] ; Example-based testing https://github.com/marick/lein-midje
+        [codox "0.8.13"] ; Generate Clojure API docs https://github.com/weavejester/codox
+        [lein-midje "3.2-RC4"] ; Example-based testing https://github.com/marick/lein-midje
         [lein-bikeshed "0.2.0"] ; Check for code smells https://github.com/dakrone/lein-bikeshed
-        [lein-kibit "0.0.8"] ; Static code search for non-idiomatic code https://github.com/jonase/kibit
+        [lein-kibit "0.1.2"] ; Static code search for non-idiomatic code https://github.com/jonase/kibit
         [jonase/eastwood "0.2.1"] ; Clojure linter https://github.com/jonase/eastwood
         [lein-checkall "0.1.1"] ; Runs bikeshed, kibit and eastwood https://github.com/itang/lein-checkall
-        [lein-ancient "0.6.2"] ; Check for outdated dependencies https://github.com/xsc/lein-ancient
+        [lein-ancient "0.6.7"] ; Check for outdated dependencies https://github.com/xsc/lein-ancient
         [lein-spell "0.1.0"] ; Catch spelling mistakes in docs and docstrings https://github.com/cldwalker/lein-spell
       ]
 
