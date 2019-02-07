@@ -85,12 +85,12 @@ As a computer algorithm however, this is all quite vague. Is `name` the same as 
 
 The same JSON documents converted to JSON-LD documents remove much of this ambiguity:
 
-```json
+```js
 {
   "http://www.schema.org/name": "Myth of Sisyphus",
   "http://www.schema.org/author": "Albert Camus",
-  "http://www.schema.org/url": {"@id": "http://amazon.com/Myth-Sisyphus-Albert-Camus/dp/7500133340/"}, ← The '@id' keyword means 'This value is an identifier that is an IRI (URL)'
-  "http://www.schema.org/image": {"@id": "http://ecx.images-amazon.com/images/I/61hJVrZgBBL.jpg"} ← The '@id' keyword means 'This value is an identifier that is an IRI (URL)'
+  "http://www.schema.org/url": {"@id": "http://amazon.com/Myth-Sisyphus-Albert-Camus/dp/7500133340/"}, // ← The '@id' keyword means 'This value is an identifier that is an IRI (URL)'
+  "http://www.schema.org/image": {"@id": "http://ecx.images-amazon.com/images/I/61hJVrZgBBL.jpg"} // ← The '@id' keyword means 'This value is an identifier that is an IRI (URL)'
 }
 ```
 
@@ -112,18 +112,18 @@ But who wants their JSON documents to look like this? A computer algorithm that'
 
 The contexts for the above JSON-LD documents look like this:
 
-```json
+```js
 {
   "@context": {
-    "name": "http://schema.org/name",  ← This means that 'name' is shorthand for 'http://schema.org/name' 
-    "author": "http://www.schema.org/author",  ← This means that 'author' is shorthand for 'http://schema.org/author' 
+    "name": "http://schema.org/name", // ← This means that 'name' is shorthand for 'http://schema.org/name' 
+    "author": "http://www.schema.org/author", // ← This means that 'author' is shorthand for 'http://schema.org/author' 
     "location": {
-      "@id": "http://schema.org/url",  ← This means that 'location' is shorthand for 'http://schema.org/url' 
+      "@id": "http://schema.org/url", // ← This means that 'location' is shorthand for 'http://schema.org/url' 
       "@type": "@id"  ← This means that a string value associated with 'location' should be interpreted as an identifier that is an IRI (a URL)
     },
     "image": {
-      "@id": "http://schema.org/image",  ← This means that 'image' is shorthand for 'http://schema.org/image' 
-      "@type": "@id"  ← This means that a string value associated with 'image' should be interpreted as an identifier that is an IRI (a URL)
+      "@id": "http://schema.org/image", // ← This means that 'image' is shorthand for 'http://schema.org/image' 
+      "@type": "@id" // ← This means that a string value associated with 'image' should be interpreted as an identifier that is an IRI (a URL)
     }
   }
 }
@@ -131,14 +131,14 @@ The contexts for the above JSON-LD documents look like this:
 
 and:
 
-```json
+```js
 {
   "@context": {
-    "author": "http://www.schema.org/author",  ← This means that 'author' is shorthand for 'http://schema.org/author' 
-    "title": "http://www.schema.org/name",  ← This means that 'title' is shorthand for 'http://schema.org/name' 
-    "image": "http://schema.org/image", ← This means that 'image' is shorthand for 'http://schema.org/image', and is not an IRI (a URL)
-    "location": "http://www.schema.org/contentLocation",  ← This means that 'location' is shorthand for 'http://schema.org/contentLocation', and is not an IRI (a URL)
-    "lang": "http://www.schema.org/inLanguage"  ← This means that 'lang' is shorthand for 'http://schema.org/inLanguage' 
+    "author": "http://www.schema.org/author", // ← This means that 'author' is shorthand for 'http://schema.org/author' 
+    "title": "http://www.schema.org/name", // ← This means that 'title' is shorthand for 'http://schema.org/name' 
+    "image": "http://schema.org/image", // ← This means that 'image' is shorthand for 'http://schema.org/image', and is not an IRI (a URL)
+    "location": "http://www.schema.org/contentLocation",/ / ← This means that 'location' is shorthand for 'http://schema.org/contentLocation', and is not an IRI (a URL)
+    "lang": "http://www.schema.org/inLanguage" // ← This means that 'lang' is shorthand for 'http://schema.org/inLanguage' 
   }
 }
 ```
